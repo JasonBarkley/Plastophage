@@ -171,6 +171,14 @@ details summary{ font-size:14px !important; padding:6px 0; }
   color:#02120d; background:#7cffd4; box-shadow:0 0 16px rgba(124,255,212,.5); cursor:pointer;
   min-height:48px; display:flex; align-items:center; }
 #inviteBar .ibtn:active{ transform:scale(.97); }
+
+/* === v20: mittente + indizio ceppo === */
+#fromBox{ display:none; margin:2px 0 4px; padding:13px 15px; border-radius:13px;
+  background:rgba(124,255,212,.08); border:1px solid rgba(124,255,212,.28); }
+#fromBox .fl{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#6f9a92; margin-bottom:4px; }
+#fromBox .fn{ font-size:17px; font-weight:800; color:#eafff7; line-height:1.3; }
+#fromBox .fh{ font-size:13.5px; color:#9cc9bd; margin-top:5px; }
+#fromBox .fh b{ color:#bffde9; }
 </style>
 </head>
 <body>
@@ -208,8 +216,12 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <input type="file" id="photoIn" accept="image/jpeg,image/png" style="display:none">
     <img id="photoPrev" alt="" style="display:none;width:100%;margin-top:10px;border-radius:12px;border:1px solid rgba(124,255,212,.2)">
     <div class="hint" id="photoInfo" style="display:none"></div>
+    <label data-i18n="l_from">da</label>
+    <input id="sfrom" data-i18n-ph="ph_from" placeholder="es. Anna" maxlength="40" autocorrect="off" spellcheck="false">
     <label data-i18n="l_key">ceppo</label>
     <input id="skey" data-i18n-ph="ph_skey" placeholder="es. faro-1987" maxlength="80" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false">
+    <label data-i18n="l_hint">indizio sul ceppo</label>
+    <input id="shint" data-i18n-ph="ph_hint" placeholder="es. il nostro solito" maxlength="60" autocorrect="off" spellcheck="false">
     <label data-i18n="l_shape">forma dei moduli</label>
     <div class="opts" id="shapeOpts">
       <div class="pill on" data-shape="round" data-i18n="sh_round">Arrotondato</div>
@@ -270,6 +282,11 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <label data-i18n="l_speed">velocità di erosione dei batteri</label>
     <input type="range" id="speed" min="8" max="200" value="18" style="width:100%; accent-color:#7cffd4;">
     <div style="display:flex; justify-content:space-between; font-size:10px; color:#5f857e; letter-spacing:.08em; margin-top:3px;"><span data-i18n="sl_slow">lenta</span><span data-i18n="sl_fast">veloce</span></div>
+    <div id="fromBox">
+      <div class="fl" data-i18n="from_label">messaggio da</div>
+      <div class="fn" id="fromName"></div>
+      <div class="fh" id="fromHint"></div>
+    </div>
     <label data-i18n="l_okey">il tuo ceppo</label>
     <input id="okey" data-i18n-ph="ph_okey" placeholder="inserisci il ceppo" maxlength="80" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false">
     <div class="btn" id="openBtn" data-i18n="openBtn">Libera il ceppo</div>
@@ -12738,7 +12755,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     tab_seal:"Sigilla in QR", tab_open:"Scansiona & rivela",
     l_msg:"messaggio", l_key:"ceppo (chiave \u2014 maiuscole e spazi non contano)",
     l_shape:"forma dei moduli", l_pal:"colore", l_mode:"contenuto del QR",
-    l_scan:"scansiona il QR plastificato", l_speed:"velocit\u00e0 di erosione dei batteri", l_okey:"il tuo ceppo",
+    l_scan:"scansiona il QR plastificato", l_speed:"velocit\u00e0 di erosione dei batteri", l_okey:"il tuo ceppo", l_from:"da (il tuo nome \u2014 aiuta a ricordare il ceppo)", ph_from:"es. Anna", l_hint:"indizio sul ceppo (facoltativo)", ph_hint:"es. il nostro solito", from_prefix:"Da: ", from_label:"messaggio da", from_reveal:"Messaggio da {name}", hint_reveal:"Indizio sul ceppo: {hint}", from_missing:"Scrivi il tuo nome nel campo \u00abda\u00bb: aiuta chi riceve a ricordare il ceppo. (Puoi comunque procedere.)",
     ph_msg:"Scrivi il messaggio da sigillare\u2026", ph_skey:"es. faro-1987", ph_okey:"inserisci il ceppo",
     ph_code:"PLST1.\u2026 oppure incolla il link ricevuto",
     sh_round:"Arrotondato", sh_gocce:"Gocce", sh_quadri:"Quadri",
@@ -12749,7 +12766,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     m_text:"Funziona anche offline: chi scansiona ottiene un codice da incollare in questa app.",
     m_text_only:"Stai aprendo l'app come file locale: \u00e8 disponibile solo la modalit\u00e0 testo. Pubblicala online per i QR-link.",
     genBtn:"Genera QR plastificato", shareBtn:"Condividi (WhatsApp, Mail\u2026)", dlBtn:"Salva PNG",
-    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", h_share_desktop:"Su computer usa i pulsanti qui sotto: <b>WhatsApp</b> apre WhatsApp Web, <b>Gmail</b> apre una nuova email già pronta nel browser, <b>Mail (app)</b> apre il programma di posta del computer. Oppure <b>Copia testo</b>. Il <b>ceppo</b> comunicalo a parte.", copyTextBtn:"Copia testo", invite_txt:"Ti piace? Invitala ad amici", inviteBtn:"Invita", invite_title:"Plastophage — messaggi plastificati", invite_msg:"Ti mando messaggi segreti “plastificati” con Plastophage: sembrano plastica, si leggono solo con la parola giusta. Provala qui — è gratis, funziona su qualsiasi telefono:", invited_copied:"Invito copiato ✓ — incollalo dove vuoi per condividere l'app.", copied_text:"Testo copiato ✓ — incollalo dove vuoi (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", waCode:"Testo \u00b7 WhatsApp", gmailCode:"Testo \u00b7 Gmail", mailCode:"Testo \u00b7 Mail (app)",
+    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", h_share_desktop:"Su computer usa i pulsanti qui sotto: <b>WhatsApp</b> apre WhatsApp Web, <b>Gmail</b> apre una nuova email già pronta nel browser, <b>Mail (app)</b> apre il programma di posta del computer. Oppure <b>Copia testo</b>. Il <b>ceppo</b> comunicalo a parte.", copyTextBtn:"Copia testo", invite_txt:"Ti piace? Invita i tuoi amici", inviteBtn:"Invita", invite_title:"Plastophage — messaggi plastificati", invite_msg:"Ti mando messaggi segreti “plastificati” con Plastophage: sembrano plastica, si leggono solo con la parola giusta. Provala qui — è gratis, funziona su qualsiasi telefono:", invited_copied:"Invito copiato ✓ — incollalo dove vuoi per condividere l'app.", copied_text:"Testo copiato ✓ — incollalo dove vuoi (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", waCode:"Testo \u00b7 WhatsApp", gmailCode:"Testo \u00b7 Gmail", mailCode:"Testo \u00b7 Mail (app)",
     h_share0:"Tocca <b>Condividi</b> per inviare su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_ok:"Tocca <b>Condividi</b> per inviarlo su WhatsApp, Mail e altro; oppure <b>tieni premuta l'immagine</b>. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_err:"Impossibile generare l'immagine in questa finestra.",
@@ -12796,7 +12813,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     tab_seal:"Seal in QR", tab_open:"Scan & reveal",
     l_msg:"message", l_key:"strain (the key \u2014 case and spaces don't matter)",
     l_shape:"module shape", l_pal:"color", l_mode:"QR content",
-    l_scan:"scan the plasticized QR", l_speed:"bacterial erosion speed", l_okey:"your strain",
+    l_scan:"scan the plasticized QR", l_speed:"bacterial erosion speed", l_okey:"your strain", l_from:"from (your name \u2014 helps recall the strain)", ph_from:"e.g. Anna", l_hint:"strain hint (optional)", ph_hint:"e.g. our usual", from_prefix:"From: ", from_label:"message from", from_reveal:"Message from {name}", hint_reveal:"Strain hint: {hint}", from_missing:"Add your name in the \u201cfrom\u201d field: it helps the recipient recall the strain. (You can still proceed.)",
     ph_msg:"Write the message to seal\u2026", ph_skey:"e.g. lighthouse-1987", ph_okey:"enter the strain",
     ph_code:"PLST1.\u2026 or paste the received link",
     sh_round:"Rounded", sh_gocce:"Drops", sh_quadri:"Squares",
@@ -12882,6 +12899,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function rr(x,y,w,h,r){ qx.beginPath(); qx.moveTo(x+r,y); qx.arcTo(x+w,y,x+w,y+h,r); qx.arcTo(x+w,y+h,x,y+h,r); qx.arcTo(x,y+h,x,y,r); qx.arcTo(x,y,x+w,y,r); qx.closePath(); qx.fill(); }
   function genQR(){
     if(photoBytes){ genPhoto(); return; }
+    if(!senderName()){ $('shareMsg').textContent=t('from_missing'); }
     lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('gmailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none'; $('copyTextBtn').style.display='block';
     const msg=$('smsg').value.trim(), key=$('skey').value;
     if(!msg){ $('smsg').focus(); return; } if(!key){ $('skey').focus(); return; }
@@ -12943,7 +12961,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     try{
       const file=new File([dataURLtoBlob(lastDataURL)],'qr-plastophage.png',{type:'image/png'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
-        const shOpts={files:[file], title:t('share_title'), text:(lastContent&&(curMode==='link'||lastIsPhoto)?(lastIsPhoto?t('share_text_photo'):t('share_text_link'))+'\n'+lastContent:t('share_text'))};
+        const shOpts={files:[file], title:t('share_title'), text:(lastContent&&(curMode==='link'||lastIsPhoto)?senderPrefix()+(lastIsPhoto?t('share_text_photo'):t('share_text_link'))+'\n'+lastContent:t('share_text'))};
         await navigator.share(shOpts);
         return;
       }
@@ -12967,7 +12985,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     curShape=p.getAttribute('data-shape'); [...$('shapeOpts').children].forEach(x=>x.classList.toggle('on',x===p)); if(hasQR) genQR(); });
   $('palOpts').addEventListener('click',e=>{ const p=e.target.closest('[data-pal]'); if(!p) return;
     curPal=p.getAttribute('data-pal'); [...$('palOpts').children].forEach(x=>x.classList.toggle('on',x===p)); if(hasQR) genQR(); });
-  function qrContent(pl){ return (curMode==='link' && SHARE_BASE) ? (SHARE_BASE+'#p='+encodeURIComponent(pl)) : pl; }
+  function senderName(){ const e=$('sfrom'); return (e&&e.value.trim())||''; }
+  function strainHint(){ const e=$('shint'); return (e&&e.value.trim())||''; }
+  function senderPrefix(){ const n=senderName(); return n ? (t('from_prefix')+n+'\n') : ''; }
+  function metaSuffix(){ const n=senderName(), h=strainHint(); let q='';
+    if(n) q+='&f='+encodeURIComponent(n); if(h) q+='&h='+encodeURIComponent(h); return q; }
+  function qrContent(pl){ return (curMode==='link' && SHARE_BASE) ? (SHARE_BASE+'#p='+encodeURIComponent(pl)+metaSuffix()) : pl; }
   function syncMode(){ const o=$('modeOpts'); if(!o) return;
     const ph=!!photoBytes;
     [...o.children].forEach(x=>{ x.classList.toggle('dis', ph || (!SHARE_BASE && x.getAttribute('data-mode')==='link'));
@@ -13077,7 +13100,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }catch(e){} }
   function genPhoto(){ if(!photoBytes) return; const key=$('skey').value; if(!key){ $('skey').focus(); return; }
     const payload=encodeBytes(photoBytes,key);
-    lastContent = SHARE_BASE ? (SHARE_BASE+'#p='+encodeURIComponent(payload)) : payload;
+    lastContent = SHARE_BASE ? (SHARE_BASE+'#p='+encodeURIComponent(payload)+metaSuffix()) : payload;
     lastIsPhoto=true;
     if(lastContent.length>60000){ const info=$('photoInfo'); info.style.display='block'; info.textContent=t('ph_toolong'); return; }
     drawSealedCard();
@@ -13172,7 +13195,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   $('speed').oninput=e=>{ revSpeed=+e.target.value/100; };
   $('codeIn').addEventListener('input',e=>{ const v=e.target.value;
     if((/[#&]card\b/.test(v)||v.indexOf('PLSTCARD')>=0) && v.indexOf('PLST1.')<0){ payload=''; setStatus(t('st_card'),'bad'); return; }
-    payload=extractPayload(v); if(payload.indexOf('PLST1.')===0) lastNoQR=false; });
+    payload=extractPayload(v); if(payload.indexOf('PLST1.')===0) lastNoQR=false;
+    { const mm=parseMeta(v); showMeta(mm.n,mm.h); } });
 
   // ---------- reveal stage ----------
   const cv=$('cv'), ctx=cv.getContext('2d'); let CW=0,CH=0,DPR=1;
@@ -13513,10 +13537,19 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     $('codeIn').value=payload; $('okey').value='demo'; setStatus(t('st_demo'),'ok');
     setTimeout(()=>{ $('openBtn').scrollIntoView({behavior:'smooth',block:'center'}); },80); }
   $('onbDemo').onclick=runDemo;
+  function showMeta(name,hint){ const box=$('fromBox'); if(!box) return;
+    if(name||hint){ $('fromName').textContent=name||''; 
+      $('fromHint').textContent = hint ? t('hint_reveal').replace('{hint}',hint) : '';
+      $('fromHint').style.display = hint ? 'block' : 'none';
+      $('fromName').style.display = name ? 'block' : 'none';
+      box.style.display='block'; }
+    else { box.style.display='none'; } }
+  function parseMeta(str){ let n='',h=''; const fm=String(str).match(/[#&]f=([^&\s]+)/); const hm=String(str).match(/[#&]h=([^&\s]+)/);
+    if(fm){ try{ n=decodeURIComponent(fm[1]); }catch(e){ n=fm[1]; } } if(hm){ try{ h=decodeURIComponent(hm[1]); }catch(e){ h=hm[1]; } } return {n:n,h:h}; }
   function openFromHash(){ const m=location.hash.match(/[#&]p=([^&]+)/);
     if(!m){ if(/[#&]card\b/.test(location.hash)){ tab(false); setStatus(t('st_card'),'bad'); lastNoQR=true; const dt=$('codeIn').closest('details'); if(dt) dt.open=true; return true; } return false; }
     let pl=m[1]; try{ pl=decodeURIComponent(pl); }catch(e){}
-    tab(false); gotPayload(pl,'st_received'); return true; }
+    tab(false); gotPayload(pl,'st_received'); { const mm=parseMeta(location.hash); showMeta(mm.n,mm.h); } return true; }
   window.addEventListener('hashchange',openFromHash);
   applyLang();
   const viaLink=openFromHash();
