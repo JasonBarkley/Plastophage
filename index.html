@@ -104,6 +104,62 @@
 /* --- v4: video export --- */
 .btn.dis{opacity:.45;pointer-events:none}
 #vidPrev{width:100%;margin-top:12px;border-radius:14px;border:1px solid rgba(124,255,212,.25);background:#000;display:block}
+
+/* === v15: accessibilità — testo e tasti più grandi, tutto uguale come funzioni === */
+:root{ font-size:17.5px; }
+body{ max-width:560px; }
+
+/* Titolo e sottotitolo */
+.head .t{ font-size:16px !important; letter-spacing:.16em; }
+.head .s{ font-size:14px !important; line-height:1.55; }
+
+/* Chip lingua e "?" — più grandi e comodi da toccare */
+.mini{ font-size:13px !important; padding:9px 14px !important; min-height:40px; display:inline-flex; align-items:center; justify-content:center; }
+
+/* Le due schede principali (Sigilla / Rivela) */
+.tab{ padding:16px 10px !important; font-size:16.5px !important; border-radius:14px !important; border-width:2px !important; min-height:58px; display:flex; align-items:center; justify-content:center; }
+.tab.on{ font-weight:700; }
+
+/* Etichette dei campi — più leggibili, meno "microscopiche" */
+label{ font-size:12.5px !important; letter-spacing:.06em; margin:18px 2px 8px !important; color:#8fbdb1 !important; }
+
+/* Campi di testo e ceppo — più alti e con testo grande */
+textarea,input{ font-size:17px !important; padding:15px !important; border-radius:14px !important; border-width:2px !important; }
+textarea{ min-height:88px !important; }
+input{ min-height:56px; }
+
+/* Pillole opzioni (forma, colore, modalità) */
+.opts .pill{ padding:13px 6px !important; font-size:14px !important; border-radius:12px !important; border-width:2px !important; min-height:50px; display:flex; align-items:center; justify-content:center; }
+
+/* TUTTI i pulsanti — grandi, alti, evidenti */
+.btn{ padding:18px 14px !important; font-size:17.5px !important; border-radius:14px !important; border-width:2px !important; min-height:62px; display:flex; align-items:center; justify-content:center; margin-top:16px; line-height:1.25; }
+.btn.half{ margin-top:0; }
+/* pulsante principale pieno di ogni pannello: leggermente più acceso */
+#genBtn, #openBtn, #onbDemo{ background:rgba(124,255,212,.22) !important; box-shadow:0 0 22px rgba(124,255,212,.14); }
+
+/* Righe a due pulsanti: su schermi stretti diventano una colonna, così restano grandi */
+.row2{ gap:10px !important; }
+@media (max-width:430px){ .row2{ flex-direction:column; } .row2>*{ width:100%; } }
+
+/* Riquadri di stato e messaggio rivelato */
+.status{ font-size:15px !important; line-height:1.5; margin-top:14px; }
+.hint{ font-size:13.5px !important; line-height:1.6; }
+.plain{ font-size:18px !important; padding:16px !important; }
+details summary{ font-size:14px !important; padding:6px 0; }
+
+/* Indicatori piccoli: leggermente più leggibili */
+.meter{ font-size:12px !important; }
+.dish .badge{ font-size:11px !important; }
+
+/* Onboarding: passi più grandi */
+.onb-title{ font-size:24px !important; }
+.onb-sub{ font-size:15px !important; }
+.onb-tx{ font-size:15px !important; }
+.onb-n{ width:30px !important; height:30px !important; font-size:14px !important; }
+
+/* Banner aggiornamento */
+#updBar .utxt{ font-size:14px !important; }
+#updBar .ubtn{ font-size:14px !important; padding:12px 18px !important; min-height:46px; }
 </style>
 </head>
 <body>
@@ -120,8 +176,8 @@
   <div class="dish"><canvas id="cv"></canvas><div class="badge" id="badge">coltura in attesa</div></div>
 
   <div class="tabs">
-    <div class="tab on" id="tabSeal" data-i18n="tab_seal">🧬 Sigilla in QR</div>
-    <div class="tab" id="tabOpen" data-i18n="tab_open">🦠 Scansiona & rivela</div>
+    <div class="tab on" id="tabSeal" data-i18n="tab_seal">Sigilla in QR</div>
+    <div class="tab" id="tabOpen" data-i18n="tab_open">Scansiona & rivela</div>
   </div>
 
   <!-- SIGILLA -->
@@ -130,8 +186,8 @@
     <textarea id="smsg" data-i18n-ph="ph_msg" placeholder="Scrivi il messaggio da sigillare…" maxlength="220"></textarea>
     <div class="meter"><span id="charCount">0/220</span><span id="qrQual"></span></div>
     <div class="row2" id="photoRow">
-      <div class="btn half ghost" id="photoBtn" data-i18n="photoBtn">🖼️ Plastifica una foto</div>
-      <div class="btn half ghost" id="photoClear" data-i18n="photoClear" style="display:none">✕ Rimuovi foto</div>
+      <div class="btn half ghost" id="photoBtn" data-i18n="photoBtn">Plastifica una foto</div>
+      <div class="btn half ghost" id="photoClear" data-i18n="photoClear" style="display:none">Rimuovi foto</div>
     </div>
     <input type="file" id="photoIn" accept="image/jpeg,image/png" style="display:none">
     <img id="photoPrev" alt="" style="display:none;width:100%;margin-top:10px;border-radius:12px;border:1px solid rgba(124,255,212,.2)">
@@ -161,9 +217,10 @@
       <canvas id="qr" style="display:none"></canvas>
       <img id="qrImg" alt="QR plastificato">
       <div class="row2">
-        <div class="btn half" id="shareBtn" data-i18n="shareBtn">📤 Condividi (WhatsApp, Mail…)</div>
-        <div class="btn half ghost" id="dlBtn" data-i18n="dlBtn">⬇️ Salva PNG</div>
+        <div class="btn half" id="shareBtn" data-i18n="shareBtn">Condividi (WhatsApp, Mail…)</div>
+        <div class="btn half ghost" id="dlBtn" data-i18n="dlBtn">Salva PNG</div>
       </div>
+      <div class="btn" id="copyLinkBtn" data-i18n="copyLinkBtn" style="display:none;margin-top:8px">Copia link della foto</div>
       <div class="hint" id="shareMsg" data-i18n-html="h_share0">Tocca <b>Condividi</b> per inviare l'immagine su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra per salvarla o condividerla. Comunica il <b>ceppo</b> a parte.</div>
       <details><summary data-i18n="sum_code">mostra / invia il contenuto del QR</summary>
         <textarea id="payloadBox" class="code" readonly rows="3" style="margin-top:8px"></textarea>
@@ -180,8 +237,8 @@
   <div class="panel" id="pOpen">
     <label data-i18n="l_scan">scansiona il QR plastificato</label>
     <div class="row2">
-      <div class="btn half" id="camBtn" data-i18n="camBtn">📷 Inquadra</div>
-      <div class="btn half ghost" id="fileBtn" data-i18n="fileBtn">🖼️ Dalla galleria</div>
+      <div class="btn half" id="camBtn" data-i18n="camBtn">Inquadra</div>
+      <div class="btn half ghost" id="fileBtn" data-i18n="fileBtn">Dalla galleria</div>
     </div>
     <input type="file" id="fileGal" accept="image/*" style="display:none">
     <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none">
@@ -199,12 +256,12 @@
     <div class="status" id="status"></div>
       <div class="hint" id="diagBox" style="display:none;white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:10px;opacity:.8"></div>
     <div class="plain" id="plain"></div>
-    <div class="btn ghost" id="vidBtn" data-i18n="vidBtn" style="display:none">🎬 Esporta video della rivelazione (9:16)</div>
+    <div class="btn ghost" id="vidBtn" data-i18n="vidBtn" style="display:none">Esporta video della rivelazione (9:16)</div>
     <div id="vidWrap" style="display:none">
       <video id="vidPrev" playsinline muted loop controls></video>
       <div class="row2">
-        <div class="btn half" id="vShare" data-i18n="vShare">📤 Condividi video</div>
-        <div class="btn half ghost" id="vSave" data-i18n="vSave">⬇️ Salva video</div>
+        <div class="btn half" id="vShare" data-i18n="vShare">Condividi video</div>
+        <div class="btn half ghost" id="vSave" data-i18n="vSave">Salva video</div>
       </div>
       <div class="hint" data-i18n="vid_hint"></div>
     </div>
@@ -216,7 +273,7 @@
   <div id="onb">
     <div class="onb-card">
       <div class="onb-top">
-        <div class="onb-logo">🧫</div>
+        <div class="onb-logo"></div>
         <div class="hctl" style="margin:0">
           <div class="mini lang on" id="onbIT">IT</div>
           <div class="mini lang" id="onbEN">EN</div>
@@ -235,7 +292,7 @@
   <div id="fullmsg">
     <div class="fm-inner"><div class="fm-text" id="fmText"></div><img id="fmImg" alt="" style="display:none;max-width:92vw;max-height:80vh;border-radius:14px;box-shadow:0 0 40px rgba(124,255,212,.25)"></div>
     <div class="fm-hint" data-i18n="fm_hint">tocca lo sfondo per chiudere</div>
-    <div class="fm-x" id="fmClose">✕</div>
+    <div class="fm-x" id="fmClose"></div>
   </div>
 
 <script>//---------------------------------------------------------------------
@@ -12657,7 +12714,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     doctitle:"Plastophage \u00b7 QR plastificato",
     title:"Plastophage \u00b7 QR plastificato",
     subtitle:"Trasforma un messaggio in un QR-guscio bioluminescente. Chi lo scansiona vede solo plastica: per leggerlo deve applicare il <b>ceppo</b> giusto.",
-    tab_seal:"\U0001f9ec Sigilla in QR", tab_open:"\U0001f9a0 Scansiona & rivela",
+    tab_seal:"Sigilla in QR", tab_open:"Scansiona & rivela",
     l_msg:"messaggio", l_key:"ceppo (chiave \u2014 maiuscole e spazi non contano)",
     l_shape:"forma dei moduli", l_pal:"colore", l_mode:"contenuto del QR",
     l_scan:"scansiona il QR plastificato", l_speed:"velocit\u00e0 di erosione dei batteri", l_okey:"il tuo ceppo",
@@ -12665,12 +12722,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     ph_code:"PLST1.\u2026 oppure incolla il link ricevuto",
     sh_round:"Arrotondato", sh_gocce:"Gocce", sh_quadri:"Quadri",
     pal_bio:"Bioluminescente", pal_ice:"Ghiaccio", pal_classic:"Classico",
-    mode_link:"Link (consigliato)", mode_text:"Solo testo (offline)", q_good:"leggibilità del QR: ottima", q_mid:"leggibilità del QR: buona", q_bad:"QR denso: accorcia il messaggio o usa Quadri/Classico", q_bad_link:"QR denso (il link inviato come testo funziona comunque); per la scansione accorcia il testo", upd_txt:"Nuova versione dell'app pronta", upd_btn:"Aggiorna", vidBtn:"🎬 Esporta video della rivelazione (9:16)", vid_rec:"Registro il video… {p}%", vid_done:"Video pronto ({s} s, {mb} MB).", vid_unsup:"Registrazione video non disponibile in questa finestra: apri l'app pubblicata in Safari o Chrome.", vid_err:"Registrazione non riuscita in questa finestra.", vid_share_fb:"Condivisione diretta non attiva qui: usa «Salva video».", vid_hint:"Verticale 9:16, perfetto per stories e stati WhatsApp. Su iPhone usa Condividi (formato MP4); su Android anche Salva (WebM).", vShare:"📤 Condividi video", vSave:"⬇️ Salva video", vid_sub_in:"messaggio plastificato", vid_cap1:"sigillato con Plastophage", vid_cap2:"dal romanzo di Jason Barkley", photoBtn:"🖼️ Plastifica una foto", photoClear:"✕ Rimuovi foto", ph_working:"Comprimo la foto…", ph_ready:"Foto pronta: {w}×{h}, {kb} KB (compressa per viaggiare nel link).", ph_toobig:"Non riesco a comprimerla abbastanza: prova un'immagine più semplice.", ph_toolong:"Risultato troppo grande per un link: riprova con un'altra foto.", ph_msgoff:"(foto selezionata — il testo è disattivato)", m_photo:"La foto è troppo grande per un QR scansionabile: viaggia cifrata nel link. Condividi il link; chi lo tocca inserisce il ceppo e vede la foto emergere dalla plastica.", h_share_photo:"Foto sigillata ✓ — tocca <b>Condividi</b> per inviare la card col <b>link</b> (WhatsApp, Mail…). Nella card la foto è ridotta a un mosaico irriconoscibile: si vede solo aprendo il link col ceppo giusto.", share_text_photo:"Apri il link e applica il ceppo giusto per vedere la foto.", st_ok_photo:"Ceppo compatibile. La foto emerge dalla coltura.", cv_photo:"FOTO PLASTIFICATA", cv_photo2:"la foto è nel link allegato · serve il ceppo", st_card:"Questa è la card-copertina di una foto plastificata: la foto NON è nell'immagine, è nel link che accompagna la card. Apri quel link, oppure incollalo nel campo «oppure incolla il codice o il link».", ph_blocked:"Questa anteprima blocca l'elaborazione delle immagini (lettura pixel). Nell'app pubblicata funziona; qui puoi provare solo con un JPEG già piccolo (≤30 KB).", ph_card_err:"Anteprima del sigillo non disponibile in questa finestra, ma il link è pronto: aprilo da «mostra / invia il contenuto del QR».", ph_format:"Non riesco a leggere questa immagine (formato non supportato, forse HEIC). Esporta o scatta in JPEG/PNG e riprova.",
+    mode_link:"Link (consigliato)", mode_text:"Solo testo (offline)", q_good:"leggibilità del QR: ottima", q_mid:"leggibilità del QR: buona", q_bad:"QR denso: accorcia il messaggio o usa Quadri/Classico", q_bad_link:"QR denso (il link inviato come testo funziona comunque); per la scansione accorcia il testo", upd_txt:"Nuova versione dell'app pronta", upd_btn:"Aggiorna", vidBtn:"Esporta video della rivelazione (9:16)", vid_rec:"Registro il video… {p}%", vid_done:"Video pronto ({s} s, {mb} MB).", vid_unsup:"Registrazione video non disponibile in questa finestra: apri l'app pubblicata in Safari o Chrome.", vid_err:"Registrazione non riuscita in questa finestra.", vid_share_fb:"Condivisione diretta non attiva qui: usa «Salva video».", vid_hint:"Verticale 9:16, perfetto per stories e stati WhatsApp. Su iPhone usa Condividi (formato MP4); su Android anche Salva (WebM).", vShare:"Condividi video", vSave:"Salva video", vid_sub_in:"messaggio plastificato", vid_cap1:"sigillato con Plastophage", vid_cap2:"dal romanzo di Jason Barkley", photoBtn:"Plastifica una foto", photoClear:"Rimuovi foto", ph_working:"Comprimo la foto…", ph_ready:"Foto pronta: {w}×{h}, {kb} KB (compressa per viaggiare nel link).", ph_toobig:"Non riesco a comprimerla abbastanza: prova un'immagine più semplice.", ph_toolong:"Risultato troppo grande per un link: riprova con un'altra foto.", ph_msgoff:"(foto selezionata — il testo è disattivato)", m_photo:"La foto è troppo grande per un QR scansionabile: viaggia cifrata nel link. Condividi il link; chi lo tocca inserisce il ceppo e vede la foto emergere dalla plastica.", h_share_photo:"Foto sigillata ✓ — tocca <b>Condividi</b> per inviare la card col <b>link</b> (WhatsApp, Mail…). Nella card la foto è ridotta a un mosaico irriconoscibile: si vede solo aprendo il link col ceppo giusto.", share_text_photo:"Apri il link e applica il ceppo giusto per vedere la foto.", st_ok_photo:"Ceppo compatibile. La foto emerge dalla coltura.", cv_photo:"FOTO PLASTIFICATA", cv_photo2:"la foto è nel link allegato · serve il ceppo", st_card:"Questa è la card-copertina di una foto plastificata: la foto NON è nell'immagine, è nel link che accompagna la card. Apri quel link, oppure incollalo nel campo «oppure incolla il codice o il link».", ph_blocked:"Questa anteprima blocca l'elaborazione delle immagini (lettura pixel). Nell'app pubblicata funziona; qui puoi provare solo con un JPEG già piccolo (≤30 KB).", ph_card_err:"Anteprima del sigillo non disponibile in questa finestra, ma il link è pronto: aprilo da «mostra / invia il contenuto del QR».", ph_format:"Non riesco a leggere questa immagine (formato non supportato, forse HEIC). Esporta o scatta in JPEG/PNG e riprova.", copyLinkBtn:"Copia link della foto", copied_link:"Link copiato ✓ — incollalo in chat (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", copy_fail:"Copia non riuscita: apri «mostra / invia il contenuto» qui sotto e copia il link manualmente.", h_share_photo_link:"Foto sigillata ✓ — il modo più semplice: tocca <b>Copia link della foto</b> e incollalo in chat. Chi lo riceve tocca il link e, col ceppo giusto, vede la foto emergere. Il ceppo comunicalo a parte.",
     m_link:"Chi lo riceve tocca il link o inquadra il QR con la normale fotocamera: si apre da solo, resta solo da inserire il ceppo. Serve internet.",
     m_link_warn:"Nota: questo indirizzo \u00e8 provvisorio (anteprima). I QR-link diventeranno validi quando l'app sar\u00e0 pubblicata online: per ora usali solo come prova.",
     m_text:"Funziona anche offline: chi scansiona ottiene un codice da incollare in questa app.",
     m_text_only:"Stai aprendo l'app come file locale: \u00e8 disponibile solo la modalit\u00e0 testo. Pubblicala online per i QR-link.",
-    genBtn:"Genera QR plastificato", shareBtn:"\U0001f4e4 Condividi (WhatsApp, Mail\u2026)", dlBtn:"\u2b07\ufe0f Salva PNG",
+    genBtn:"Genera QR plastificato", shareBtn:"Condividi (WhatsApp, Mail\u2026)", dlBtn:"Salva PNG",
     sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", waCode:"Testo \u00b7 WhatsApp", mailCode:"Testo \u00b7 Mail",
     h_share0:"Tocca <b>Condividi</b> per inviare su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_ok:"Tocca <b>Condividi</b> per inviarlo su WhatsApp, Mail e altro; oppure <b>tieni premuta l'immagine</b>. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
@@ -12683,7 +12740,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     share_text:"Scansiona e applica il ceppo giusto per leggerlo.",
     share_text_link:"Apri il link e applica il ceppo giusto per leggere il messaggio.",
     mail_subj:"Messaggio plastificato \u00b7 Plastophage",
-    camBtn:"\U0001f4f7 Inquadra", fileBtn:"\U0001f5bc\ufe0f Dalla galleria", close:"chiudi",
+    camBtn:"Inquadra", fileBtn:"Dalla galleria", close:"chiudi",
     sl_slow:"lenta", sl_fast:"veloce", openBtn:"Libera il ceppo",
     st_scanned:"QR letto \u2713 \u2014 ora inserisci il ceppo",
     st_received:"Messaggio plastificato ricevuto \u2713 \u2014 inserisci il ceppo per liberarlo",
@@ -12715,7 +12772,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     doctitle:"Plastophage \u00b7 Plasticized QR",
     title:"Plastophage \u00b7 Plasticized QR",
     subtitle:"Turn a message into a bioluminescent QR shell. Anyone scanning it sees only plastic: to read it, they must apply the right <b>strain</b>.",
-    tab_seal:"\U0001f9ec Seal in QR", tab_open:"\U0001f9a0 Scan & reveal",
+    tab_seal:"Seal in QR", tab_open:"Scan & reveal",
     l_msg:"message", l_key:"strain (the key \u2014 case and spaces don't matter)",
     l_shape:"module shape", l_pal:"color", l_mode:"QR content",
     l_scan:"scan the plasticized QR", l_speed:"bacterial erosion speed", l_okey:"your strain",
@@ -12723,12 +12780,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     ph_code:"PLST1.\u2026 or paste the received link",
     sh_round:"Rounded", sh_gocce:"Drops", sh_quadri:"Squares",
     pal_bio:"Bioluminescent", pal_ice:"Ice", pal_classic:"Classic",
-    mode_link:"Link (recommended)", mode_text:"Text only (offline)", q_good:"QR readability: excellent", q_mid:"QR readability: good", q_bad:"Dense QR: shorten the message or use Squares/Classic", q_bad_link:"Dense QR (the link sent as text still works); shorten the text for easy scanning", upd_txt:"New version of the app ready", upd_btn:"Update", vidBtn:"🎬 Export reveal video (9:16)", vid_rec:"Recording the video… {p}%", vid_done:"Video ready ({s} s, {mb} MB).", vid_unsup:"Video recording isn't available in this window: open the published app in Safari or Chrome.", vid_err:"Recording failed in this window.", vid_share_fb:"Direct sharing isn't active here: use “Save video”.", vid_hint:"Vertical 9:16, perfect for stories and WhatsApp status. On iPhone use Share (MP4); on Android Save works too (WebM).", vShare:"📤 Share video", vSave:"⬇️ Save video", vid_sub_in:"plasticized message", vid_cap1:"sealed with Plastophage", vid_cap2:"from the novel by Jason Barkley", photoBtn:"🖼️ Plasticize a photo", photoClear:"✕ Remove photo", ph_working:"Compressing the photo…", ph_ready:"Photo ready: {w}×{h}, {kb} KB (compressed to travel in the link).", ph_toobig:"Couldn't compress it enough: try a simpler image.", ph_toolong:"Result too large for a link: try another photo.", ph_msgoff:"(photo selected — text is off)", m_photo:"A photo is too big for a scannable QR: it travels encrypted inside the link. Share the link; whoever taps it enters the strain and watches the photo emerge from the plastic.", h_share_photo:"Photo sealed ✓ — tap <b>Share</b> to send the card with the <b>link</b> (WhatsApp, Mail…). In the card the photo is reduced to an unrecognizable mosaic: it can only be seen by opening the link with the right strain.", share_text_photo:"Open the link and apply the right strain to see the photo.", st_ok_photo:"Strain compatible. The photo emerges from the culture.", cv_photo:"PLASTICIZED PHOTO", cv_photo2:"the photo is in the attached link · strain required", st_card:"This is the cover card of a plasticized photo: the photo is NOT in the image, it's in the link that comes with the card. Open that link, or paste it into “or paste the code or link”.", ph_blocked:"This preview blocks image processing (pixel readback). It works in the published app; here you can only test with an already-small JPEG (≤30 KB).", ph_card_err:"Seal preview isn't available in this window, but the link is ready: open “show / send the QR content”.", ph_format:"Can't read this image (unsupported format, possibly HEIC). Export or shoot as JPEG/PNG and try again.",
+    mode_link:"Link (recommended)", mode_text:"Text only (offline)", q_good:"QR readability: excellent", q_mid:"QR readability: good", q_bad:"Dense QR: shorten the message or use Squares/Classic", q_bad_link:"Dense QR (the link sent as text still works); shorten the text for easy scanning", upd_txt:"New version of the app ready", upd_btn:"Update", vidBtn:"Export reveal video (9:16)", vid_rec:"Recording the video… {p}%", vid_done:"Video ready ({s} s, {mb} MB).", vid_unsup:"Video recording isn't available in this window: open the published app in Safari or Chrome.", vid_err:"Recording failed in this window.", vid_share_fb:"Direct sharing isn't active here: use “Save video”.", vid_hint:"Vertical 9:16, perfect for stories and WhatsApp status. On iPhone use Share (MP4); on Android Save works too (WebM).", vShare:"Share video", vSave:"Save video", vid_sub_in:"plasticized message", vid_cap1:"sealed with Plastophage", vid_cap2:"from the novel by Jason Barkley", photoBtn:"Plasticize a photo", photoClear:"Remove photo", ph_working:"Compressing the photo…", ph_ready:"Photo ready: {w}×{h}, {kb} KB (compressed to travel in the link).", ph_toobig:"Couldn't compress it enough: try a simpler image.", ph_toolong:"Result too large for a link: try another photo.", ph_msgoff:"(photo selected — text is off)", m_photo:"A photo is too big for a scannable QR: it travels encrypted inside the link. Share the link; whoever taps it enters the strain and watches the photo emerge from the plastic.", h_share_photo:"Photo sealed ✓ — tap <b>Share</b> to send the card with the <b>link</b> (WhatsApp, Mail…). In the card the photo is reduced to an unrecognizable mosaic: it can only be seen by opening the link with the right strain.", share_text_photo:"Open the link and apply the right strain to see the photo.", st_ok_photo:"Strain compatible. The photo emerges from the culture.", cv_photo:"PLASTICIZED PHOTO", cv_photo2:"the photo is in the attached link · strain required", st_card:"This is the cover card of a plasticized photo: the photo is NOT in the image, it's in the link that comes with the card. Open that link, or paste it into “or paste the code or link”.", ph_blocked:"This preview blocks image processing (pixel readback). It works in the published app; here you can only test with an already-small JPEG (≤30 KB).", ph_card_err:"Seal preview isn't available in this window, but the link is ready: open “show / send the QR content”.", ph_format:"Can't read this image (unsupported format, possibly HEIC). Export or shoot as JPEG/PNG and try again.", copyLinkBtn:"Copy the photo link", copied_link:"Link copied ✓ — paste it into your chat (WhatsApp, Mail…). Share the strain separately, out loud.", copy_fail:"Copy failed: open “show / send the content” below and copy the link manually.", h_share_photo_link:"Photo sealed ✓ — easiest way: tap <b>Copy the photo link</b> and paste it into your chat. Whoever receives it taps the link and, with the right strain, watches the photo emerge. Share the strain separately.",
     m_link:"Recipients tap the link or point their regular camera at the QR: it opens by itself \u2014 they only enter the strain. Requires internet.",
     m_link_warn:"Note: this address is provisional (preview). Link QRs will become valid once the app is published online \u2014 treat them as a test for now.",
     m_text:"Works offline too: scanning yields a code to paste into this app.",
     m_text_only:"You're opening the app as a local file: only text mode is available. Publish it online to enable link QRs.",
-    genBtn:"Generate plasticized QR", shareBtn:"\U0001f4e4 Share (WhatsApp, Mail\u2026)", dlBtn:"\u2b07\ufe0f Save PNG",
+    genBtn:"Generate plasticized QR", shareBtn:"Share (WhatsApp, Mail\u2026)", dlBtn:"Save PNG",
     sum_code:"show / send the QR content", sum_paste:"or paste the code or link", waCode:"Text \u00b7 WhatsApp", mailCode:"Text \u00b7 Mail",
     h_share0:"Tap <b>Share</b> to send via WhatsApp, Mail and more. Alternatively, <b>press and hold the image</b> above. Share the <b>strain</b> separately (out loud is best).",
     h_share_ok:"Tap <b>Share</b> to send it via WhatsApp, Mail and more; or <b>press and hold the image</b>. Share the <b>strain</b> separately (out loud is best).",
@@ -12741,7 +12798,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     share_text:"Scan it and apply the right strain to read it.",
     share_text_link:"Open the link and apply the right strain to read the message.",
     mail_subj:"Plasticized message \u00b7 Plastophage",
-    camBtn:"\U0001f4f7 Point camera", fileBtn:"\U0001f5bc\ufe0f From gallery", close:"close",
+    camBtn:"Point camera", fileBtn:"From gallery", close:"close",
     sl_slow:"slow", sl_fast:"fast", openBtn:"Release the strain",
     st_scanned:"QR read \u2713 \u2014 now enter the strain",
     st_received:"Plasticized message received \u2713 \u2014 enter the strain to release it",
@@ -12804,7 +12861,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function rr(x,y,w,h,r){ qx.beginPath(); qx.moveTo(x+r,y); qx.arcTo(x+w,y,x+w,y+h,r); qx.arcTo(x+w,y+h,x,y+h,r); qx.arcTo(x,y+h,x,y,r); qx.arcTo(x,y,x+w,y,r); qx.closePath(); qx.fill(); }
   function genQR(){
     if(photoBytes){ genPhoto(); return; }
-    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('qrImg').style.display='';
+    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none';
     const msg=$('smsg').value.trim(), key=$('skey').value;
     if(!msg){ $('smsg').focus(); return; } if(!key){ $('skey').focus(); return; }
     const payload=encode(msg,key);
@@ -12830,6 +12887,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     catch(e){ $('shareMsg').textContent=t('h_share_err'); }
   }
   $('genBtn').onclick=genQR;
+  $('copyLinkBtn').onclick=async()=>{ const link=lastContent; if(!link) return;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(link); }
+      else { const ta=$('payloadBox'); ta.style.display='block'; ta.focus(); ta.select(); document.execCommand('copy'); }
+      $('shareMsg').innerHTML=t('copied_link');
+    }catch(e){ $('shareMsg').innerHTML=t('copy_fail'); const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } };
   function dataURLtoBlob(u){ const parts=u.split(','); const bin=atob(parts[1]); const a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type:'image/png'}); }
   $('shareBtn').onclick=async()=>{
     if(!lastDataURL){ $('shareMsg').textContent=t('h_gen_first'); return; }
@@ -12970,8 +13033,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     drawSealedCard();
     $('qrwrap').classList.add('show'); $('payloadBox').value=lastContent; hasQR=true;
     $('waCode').style.display='none'; $('mailCode').style.display='none';
-    try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('qrImg').style.display=''; $('shareMsg').innerHTML=t('h_share_photo'); }
-    catch(e){ lastDataURL=''; $('qrImg').style.display='none'; $('shareMsg').innerHTML=t('ph_card_err');
+    $('copyLinkBtn').style.display = (SHARE_BASE && lastContent) ? 'block' : 'none';
+    try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('qrImg').style.display=''; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'h_share_photo'); }
+    catch(e){ lastDataURL=''; $('qrImg').style.display='none'; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'ph_card_err');
       const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } }
 
   // ---------- scanning ----------
