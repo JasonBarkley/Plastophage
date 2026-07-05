@@ -220,6 +220,7 @@ details summary{ font-size:14px !important; padding:6px 0; }
         <div class="btn half" id="shareBtn" data-i18n="shareBtn">Condividi (WhatsApp, Mail…)</div>
         <div class="btn half ghost" id="dlBtn" data-i18n="dlBtn">Salva PNG</div>
       </div>
+      <div class="btn ghost" id="copyTextBtn" data-i18n="copyTextBtn" style="display:none;margin-top:10px">Copia testo</div>
       <div class="btn" id="copyLinkBtn" data-i18n="copyLinkBtn" style="display:none;margin-top:8px">Copia link della foto</div>
       <div class="hint" id="shareMsg" data-i18n-html="h_share0">Tocca <b>Condividi</b> per inviare l'immagine su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra per salvarla o condividerla. Comunica il <b>ceppo</b> a parte.</div>
       <details><summary data-i18n="sum_code">mostra / invia il contenuto del QR</summary>
@@ -12703,6 +12704,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 
   // ---------- storage / i18n / deep-link helpers ----------
   const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  const IS_DESKTOP = (function(){ try{ return window.matchMedia && window.matchMedia('(pointer:fine)').matches && !('ontouchstart' in window); }catch(e){ return false; } })();
   const SHARE_BASE=(location.protocol==='http:'||location.protocol==='https:')?(location.origin+location.pathname):'';
   const PROVISIONAL=!!SHARE_BASE && /(localhost|127\.|0\.0\.0\.0|claude|anthropic|usercontent|sandbox|preview|e2b)/i.test(location.host);
   function extractPayload(text){ if(!text) return '';
@@ -12728,7 +12730,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     m_text:"Funziona anche offline: chi scansiona ottiene un codice da incollare in questa app.",
     m_text_only:"Stai aprendo l'app come file locale: \u00e8 disponibile solo la modalit\u00e0 testo. Pubblicala online per i QR-link.",
     genBtn:"Genera QR plastificato", shareBtn:"Condividi (WhatsApp, Mail\u2026)", dlBtn:"Salva PNG",
-    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", waCode:"Testo \u00b7 WhatsApp", mailCode:"Testo \u00b7 Mail",
+    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", h_share_desktop:"Su computer usa i pulsanti qui sotto: <b>WhatsApp</b> apre WhatsApp Web, <b>Mail</b> apre la tua email. Oppure <b>Copia testo</b> e incollalo dove vuoi. Il <b>ceppo</b> comunicalo a parte.", copyTextBtn:"Copia testo", copied_text:"Testo copiato ✓ — incollalo dove vuoi (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", waCode:"Testo \u00b7 WhatsApp", mailCode:"Testo \u00b7 Mail",
     h_share0:"Tocca <b>Condividi</b> per inviare su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_ok:"Tocca <b>Condividi</b> per inviarlo su WhatsApp, Mail e altro; oppure <b>tieni premuta l'immagine</b>. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_err:"Impossibile generare l'immagine in questa finestra.",
@@ -12786,7 +12788,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     m_text:"Works offline too: scanning yields a code to paste into this app.",
     m_text_only:"You're opening the app as a local file: only text mode is available. Publish it online to enable link QRs.",
     genBtn:"Generate plasticized QR", shareBtn:"Share (WhatsApp, Mail\u2026)", dlBtn:"Save PNG",
-    sum_code:"show / send the QR content", sum_paste:"or paste the code or link", waCode:"Text \u00b7 WhatsApp", mailCode:"Text \u00b7 Mail",
+    sum_code:"show / send the QR content", sum_paste:"or paste the code or link", waCode:"Text \u00b7 WhatsApp", mailCode:"Text \u00b7 Mail", h_share_desktop:"On a computer use the buttons below: <b>WhatsApp</b> opens WhatsApp Web, <b>Mail</b> opens your email. Or <b>Copy text</b> and paste it anywhere. Share the <b>strain</b> separately.", copyTextBtn:"Copy text", copied_text:"Text copied ✓ — paste it anywhere (WhatsApp, Mail…). Share the strain separately, out loud.",
     h_share0:"Tap <b>Share</b> to send via WhatsApp, Mail and more. Alternatively, <b>press and hold the image</b> above. Share the <b>strain</b> separately (out loud is best).",
     h_share_ok:"Tap <b>Share</b> to send it via WhatsApp, Mail and more; or <b>press and hold the image</b>. Share the <b>strain</b> separately (out loud is best).",
     h_share_err:"Couldn't generate the image in this window.",
@@ -12861,7 +12863,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function rr(x,y,w,h,r){ qx.beginPath(); qx.moveTo(x+r,y); qx.arcTo(x+w,y,x+w,y+h,r); qx.arcTo(x+w,y+h,x,y+h,r); qx.arcTo(x,y+h,x,y,r); qx.arcTo(x,y,x+w,y,r); qx.closePath(); qx.fill(); }
   function genQR(){
     if(photoBytes){ genPhoto(); return; }
-    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none';
+    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none'; $('copyTextBtn').style.display='block';
     const msg=$('smsg').value.trim(), key=$('skey').value;
     if(!msg){ $('smsg').focus(); return; } if(!key){ $('skey').focus(); return; }
     const payload=encode(msg,key);
@@ -12894,8 +12896,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       $('shareMsg').innerHTML=t('copied_link');
     }catch(e){ $('shareMsg').innerHTML=t('copy_fail'); const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } };
   function dataURLtoBlob(u){ const parts=u.split(','); const bin=atob(parts[1]); const a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type:'image/png'}); }
+  async function copyText(txt, okKey){ if(!txt) return;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(txt); }
+      else { const ta=$('payloadBox'); ta.style.display='block'; ta.focus(); ta.select(); document.execCommand('copy'); }
+      $('shareMsg').innerHTML=t(okKey);
+    }catch(e){ $('shareMsg').innerHTML=t('copy_fail'); const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } }
+  $('copyTextBtn').onclick=()=>copyText(lastContent||$('payloadBox').value,'copied_text');
   $('shareBtn').onclick=async()=>{
     if(!lastDataURL){ $('shareMsg').textContent=t('h_gen_first'); return; }
+    if(IS_DESKTOP){ desktopShare(); return; }
     try{
       const file=new File([dataURLtoBlob(lastDataURL)],'qr-plastophage.png',{type:'image/png'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
@@ -12906,7 +12916,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       shareFallback();
     }catch(e){ if(e && e.name==='AbortError') return; shareFallback(); }
   };
+  function desktopShare(){
+    $('shareMsg').innerHTML=t('h_share_desktop');
+    const d=document.querySelector('#qrwrap details'); if(d) d.open=true;
+    copyText(lastContent||$('payloadBox').value,'copied_text');
+  }
   function shareFallback(){
+    if(IS_DESKTOP){ desktopShare(); return; }
     $('shareMsg').innerHTML=t('h_share_fb');
     const d=document.querySelector('#qrwrap details'); if(d) d.open=true;
   }
@@ -13033,7 +13049,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     drawSealedCard();
     $('qrwrap').classList.add('show'); $('payloadBox').value=lastContent; hasQR=true;
     $('waCode').style.display='none'; $('mailCode').style.display='none';
-    $('copyLinkBtn').style.display = (SHARE_BASE && lastContent) ? 'block' : 'none';
+    $('copyLinkBtn').style.display = (SHARE_BASE && lastContent) ? 'block' : 'none'; $('copyTextBtn').style.display='none';
     try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('qrImg').style.display=''; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'h_share_photo'); }
     catch(e){ lastDataURL=''; $('qrImg').style.display='none'; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'ph_card_err');
       const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } }
