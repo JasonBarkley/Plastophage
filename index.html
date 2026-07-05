@@ -160,6 +160,17 @@ details summary{ font-size:14px !important; padding:6px 0; }
 /* Banner aggiornamento */
 #updBar .utxt{ font-size:14px !important; }
 #updBar .ubtn{ font-size:14px !important; padding:12px 18px !important; min-height:46px; }
+
+/* === v19: pulsante "Invita" in alto === */
+#inviteBar{ margin:12px 0 4px; display:flex; align-items:center; gap:12px;
+  padding:14px 16px; border-radius:14px;
+  background:linear-gradient(135deg, rgba(124,255,212,.16), rgba(124,255,212,.06));
+  border:1px solid rgba(124,255,212,.4); box-shadow:0 0 20px rgba(124,255,212,.1); }
+#inviteBar .itxt{ flex:1; font-size:14px; line-height:1.4; color:#d6fff2; font-weight:600; }
+#inviteBar .ibtn{ flex:none; padding:12px 18px; border-radius:11px; font-size:15px; font-weight:800;
+  color:#02120d; background:#7cffd4; box-shadow:0 0 16px rgba(124,255,212,.5); cursor:pointer;
+  min-height:48px; display:flex; align-items:center; }
+#inviteBar .ibtn:active{ transform:scale(.97); }
 </style>
 </head>
 <body>
@@ -171,6 +182,11 @@ details summary{ font-size:14px !important; padding:6px 0; }
     </div>
     <div class="t" data-i18n="title">Plastophage · QR plastificato</div>
     <div class="s" data-i18n-html="subtitle">Trasforma un messaggio in un QR-guscio bioluminescente. Chi lo scansiona vede solo plastica: per leggerlo deve applicare il <b>ceppo</b> giusto.</div>
+  </div>
+
+  <div id="inviteBar">
+    <div class="itxt" data-i18n="invite_txt">Ti piace? Invita amici a usare Plastophage</div>
+    <div class="ibtn" id="inviteBtn" data-i18n="inviteBtn">Invita</div>
   </div>
 
   <div class="dish"><canvas id="cv"></canvas><div class="badge" id="badge">coltura in attesa</div></div>
@@ -227,6 +243,9 @@ details summary{ font-size:14px !important; padding:6px 0; }
         <textarea id="payloadBox" class="code" readonly rows="3" style="margin-top:8px"></textarea>
         <div class="row2" style="margin-top:8px">
           <a class="btn half ghost" id="waCode" data-i18n="waCode" target="_blank" rel="noopener">Codice · WhatsApp</a>
+          <a class="btn half ghost" id="gmailCode" data-i18n="gmailCode" target="_blank" rel="noopener">Testo · Gmail</a>
+        </div>
+        <div class="row2" style="margin-top:8px">
           <a class="btn half ghost" id="mailCode" data-i18n="mailCode">Codice · Mail</a>
         </div>
       </details>
@@ -12730,7 +12749,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     m_text:"Funziona anche offline: chi scansiona ottiene un codice da incollare in questa app.",
     m_text_only:"Stai aprendo l'app come file locale: \u00e8 disponibile solo la modalit\u00e0 testo. Pubblicala online per i QR-link.",
     genBtn:"Genera QR plastificato", shareBtn:"Condividi (WhatsApp, Mail\u2026)", dlBtn:"Salva PNG",
-    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", h_share_desktop:"Su computer usa i pulsanti qui sotto: <b>WhatsApp</b> apre WhatsApp Web, <b>Mail</b> apre la tua email. Oppure <b>Copia testo</b> e incollalo dove vuoi. Il <b>ceppo</b> comunicalo a parte.", copyTextBtn:"Copia testo", copied_text:"Testo copiato ✓ — incollalo dove vuoi (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", waCode:"Testo \u00b7 WhatsApp", mailCode:"Testo \u00b7 Mail",
+    sum_code:"mostra / invia il contenuto del QR", sum_paste:"oppure incolla il codice o il link", h_share_desktop:"Su computer usa i pulsanti qui sotto: <b>WhatsApp</b> apre WhatsApp Web, <b>Gmail</b> apre una nuova email già pronta nel browser, <b>Mail (app)</b> apre il programma di posta del computer. Oppure <b>Copia testo</b>. Il <b>ceppo</b> comunicalo a parte.", copyTextBtn:"Copia testo", invite_txt:"Ti piace? Invitala ad amici", inviteBtn:"Invita", invite_title:"Plastophage — messaggi plastificati", invite_msg:"Ti mando messaggi segreti “plastificati” con Plastophage: sembrano plastica, si leggono solo con la parola giusta. Provala qui — è gratis, funziona su qualsiasi telefono:", invited_copied:"Invito copiato ✓ — incollalo dove vuoi per condividere l'app.", copied_text:"Testo copiato ✓ — incollalo dove vuoi (WhatsApp, Mail…). Il ceppo comunicalo a parte, a voce.", waCode:"Testo \u00b7 WhatsApp", gmailCode:"Testo \u00b7 Gmail", mailCode:"Testo \u00b7 Mail (app)",
     h_share0:"Tocca <b>Condividi</b> per inviare su WhatsApp, Mail e altro. In alternativa <b>tieni premuta l'immagine</b> qui sopra. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_ok:"Tocca <b>Condividi</b> per inviarlo su WhatsApp, Mail e altro; oppure <b>tieni premuta l'immagine</b>. Il <b>ceppo</b> comunicalo a parte (a voce \u00e8 meglio).",
     h_share_err:"Impossibile generare l'immagine in questa finestra.",
@@ -12788,7 +12807,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     m_text:"Works offline too: scanning yields a code to paste into this app.",
     m_text_only:"You're opening the app as a local file: only text mode is available. Publish it online to enable link QRs.",
     genBtn:"Generate plasticized QR", shareBtn:"Share (WhatsApp, Mail\u2026)", dlBtn:"Save PNG",
-    sum_code:"show / send the QR content", sum_paste:"or paste the code or link", waCode:"Text \u00b7 WhatsApp", mailCode:"Text \u00b7 Mail", h_share_desktop:"On a computer use the buttons below: <b>WhatsApp</b> opens WhatsApp Web, <b>Mail</b> opens your email. Or <b>Copy text</b> and paste it anywhere. Share the <b>strain</b> separately.", copyTextBtn:"Copy text", copied_text:"Text copied ✓ — paste it anywhere (WhatsApp, Mail…). Share the strain separately, out loud.",
+    sum_code:"show / send the QR content", sum_paste:"or paste the code or link", waCode:"Text \u00b7 WhatsApp", gmailCode:"Text \u00b7 Gmail", mailCode:"Text \u00b7 Mail (app)", h_share_desktop:"On a computer use the buttons below: <b>WhatsApp</b> opens WhatsApp Web, <b>Gmail</b> opens a ready-to-send email in your browser, <b>Mail (app)</b> opens your computer's mail program. Or <b>Copy text</b>. Share the <b>strain</b> separately.", copyTextBtn:"Copy text", invite_txt:"Enjoying it? Invite friends", inviteBtn:"Invite", invite_title:"Plastophage — plasticized messages", invite_msg:"I send secret “plasticized” messages with Plastophage: they look like plastic, readable only with the right word. Try it — it's free and works on any phone:", invited_copied:"Invitation copied ✓ — paste it anywhere to share the app.", copied_text:"Text copied ✓ — paste it anywhere (WhatsApp, Mail…). Share the strain separately, out loud.",
     h_share0:"Tap <b>Share</b> to send via WhatsApp, Mail and more. Alternatively, <b>press and hold the image</b> above. Share the <b>strain</b> separately (out loud is best).",
     h_share_ok:"Tap <b>Share</b> to send it via WhatsApp, Mail and more; or <b>press and hold the image</b>. Share the <b>strain</b> separately (out loud is best).",
     h_share_err:"Couldn't generate the image in this window.",
@@ -12863,7 +12882,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function rr(x,y,w,h,r){ qx.beginPath(); qx.moveTo(x+r,y); qx.arcTo(x+w,y,x+w,y+h,r); qx.arcTo(x+w,y+h,x,y+h,r); qx.arcTo(x,y+h,x,y,r); qx.arcTo(x,y,x+w,y,r); qx.closePath(); qx.fill(); }
   function genQR(){
     if(photoBytes){ genPhoto(); return; }
-    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none'; $('copyTextBtn').style.display='block';
+    lastIsPhoto=false; $('waCode').style.display=''; $('mailCode').style.display=''; $('gmailCode').style.display=''; $('qrImg').style.display=''; $('copyLinkBtn').style.display='none'; $('copyTextBtn').style.display='block';
     const msg=$('smsg').value.trim(), key=$('skey').value;
     if(!msg){ $('smsg').focus(); return; } if(!key){ $('skey').focus(); return; }
     const payload=encode(msg,key);
@@ -12885,6 +12904,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     $('qrwrap').classList.add('show'); $('payloadBox').value=lastContent; hasQR=true;
     $('waCode').href='https://wa.me/?text='+encodeURIComponent(lastContent);
     $('mailCode').href='mailto:?subject='+encodeURIComponent(t('mail_subj'))+'&body='+encodeURIComponent(lastContent);
+    $('gmailCode').href='https://mail.google.com/mail/?view=cm&fs=1&su='+encodeURIComponent(t('mail_subj'))+'&body='+encodeURIComponent(lastContent);
     try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('shareMsg').innerHTML=t('h_share_ok'); }
     catch(e){ $('shareMsg').textContent=t('h_share_err'); }
   }
@@ -12903,6 +12923,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       $('shareMsg').innerHTML=t(okKey);
     }catch(e){ $('shareMsg').innerHTML=t('copy_fail'); const d=document.querySelector('#qrwrap details'); if(d) d.open=true; } }
   $('copyTextBtn').onclick=()=>copyText(lastContent||$('payloadBox').value,'copied_text');
+  function appLink(){ return SHARE_BASE || location.href.split('#')[0]; }
+  $('inviteBtn').onclick=async()=>{
+    const link=appLink(); const text=t('invite_msg')+'\n'+link;
+    if(!IS_DESKTOP && navigator.share){
+      try{ await navigator.share({title:t('invite_title'), text:text}); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
+    // desktop or no native share: copy + offer WhatsApp/Gmail
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); }
+      $('shareMsg').innerHTML=t('invited_copied');
+    }catch(e){}
+    window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');
+  };
   $('shareBtn').onclick=async()=>{
     if(!lastDataURL){ $('shareMsg').textContent=t('h_gen_first'); return; }
     if(IS_DESKTOP){ desktopShare(); return; }
@@ -13048,7 +13082,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(lastContent.length>60000){ const info=$('photoInfo'); info.style.display='block'; info.textContent=t('ph_toolong'); return; }
     drawSealedCard();
     $('qrwrap').classList.add('show'); $('payloadBox').value=lastContent; hasQR=true;
-    $('waCode').style.display='none'; $('mailCode').style.display='none';
+    $('waCode').style.display='none'; $('mailCode').style.display='none'; $('gmailCode').style.display='none';
     $('copyLinkBtn').style.display = (SHARE_BASE && lastContent) ? 'block' : 'none'; $('copyTextBtn').style.display='none';
     try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('qrImg').style.display=''; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'h_share_photo'); }
     catch(e){ lastDataURL=''; $('qrImg').style.display='none'; $('shareMsg').innerHTML=t(SHARE_BASE?'h_share_photo_link':'ph_card_err');
