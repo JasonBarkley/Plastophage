@@ -39,8 +39,3 @@ NOTA 3: quando pubblichi una nuova versione, chi ha l'app aperta vede il
 NOTA 4: dopo una rivelazione riuscita compare "Esporta video (9:16)":
   genera un breve video verticale della rivelazione da condividere
   su stories, TikTok o stati WhatsApp (iPhone: MP4, Android: WebM).
-NOTA 5: si possono "plastificare" anche le FOTO: vengono compresse (~30 KB)
-  e cifrate dentro il link (niente QR scansionabile: troppi dati per un QR).
-  Chi tocca il link inserisce il ceppo e vede la foto emergere dalla plastica.
-  La card include un piccolo QR d'appoggio: inquadrato con qualunque
-  fotocamera, apre l'app e spiega che la foto viaggia nel link.
