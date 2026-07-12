@@ -284,7 +284,7 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <input type="file" id="fileGal" accept="image/*" style="display:none">
     <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none">
     <div id="scanbox"><video id="cam" playsinline muted></video><div class="x" id="camClose" data-i18n="close">chiudi</div></div>
-    <img id="preview" alt="anteprima immagine" style="display:none; width:100%; margin-top:12px; border-radius:12px; border:1px solid rgba(124,255,212,.18);">
+    <img id="preview" alt="anteprima immagine" style="display:none; width:auto; max-width:62%; max-height:180px; margin:12px auto 0; border-radius:12px; border:1px solid rgba(124,255,212,.18);">
     <details><summary data-i18n="sum_paste">oppure incolla il codice o il link</summary>
       <textarea id="codeIn" data-i18n-ph="ph_code" class="code" placeholder="PLST1.…" rows="2" style="margin-top:8px" autocapitalize="none" autocorrect="off" spellcheck="false"></textarea>
     </details>
@@ -14050,9 +14050,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const im=$('preview'); im.src=c.toDataURL('image/png'); im.style.display='block';
     }catch(e){ /* if the QR can't be drawn, the flow still works without it */ }
   }
-  function focusStrain(){ const ok=$('okey');
-    try{ ok.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
-    setTimeout(()=>{ try{ ok.focus({preventScroll:true}); }catch(e){ ok.focus(); } }, 350); }
+  function focusStrain(){
+    // Bring the whole "QR + strain + button" group into view, not just the input.
+    const btn=$('openBtn'), ok=$('okey');
+    try{ btn.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ try{ ok.scrollIntoView(); }catch(e2){} }
+    // Nudge a little further so the QR above stays visible on short screens.
+    setTimeout(()=>{ try{ window.scrollBy({top:24, behavior:'smooth'}); }catch(e){}
+      try{ ok.focus({preventScroll:true}); }catch(e){ ok.focus(); } }, 420); }
   function openFromHash(){ const m=location.hash.match(/[#&]p=([^&]+)/);
     if(!m){ if(/[#&]card\b/.test(location.hash)){ tab(false); setStatus(t('st_card'),'bad'); lastNoQR=true; const dt=$('codeIn').closest('details'); if(dt) dt.open=true; return true; } return false; }
     let pl=m[1]; try{ pl=decodeURIComponent(pl); }catch(e){}
