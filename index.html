@@ -284,7 +284,7 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <input type="file" id="fileGal" accept="image/*" style="display:none">
     <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none">
     <div id="scanbox"><video id="cam" playsinline muted></video><div class="x" id="camClose" data-i18n="close">chiudi</div></div>
-    <img id="preview" alt="anteprima immagine" style="display:none; width:auto; max-width:62%; max-height:180px; margin:12px auto 0; border-radius:12px; border:1px solid rgba(124,255,212,.18);">
+    <img id="preview" alt="anteprima immagine" style="display:none; width:auto; max-width:44%; max-height:120px; margin:10px auto 0; border-radius:10px; border:1px solid rgba(124,255,212,.18);">
     <details><summary data-i18n="sum_paste">oppure incolla il codice o il link</summary>
       <textarea id="codeIn" data-i18n-ph="ph_code" class="code" placeholder="PLST1.…" rows="2" style="margin-top:8px" autocapitalize="none" autocorrect="off" spellcheck="false"></textarea>
     </details>
@@ -14051,12 +14051,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }catch(e){ /* if the QR can't be drawn, the flow still works without it */ }
   }
   function focusStrain(){
-    // Bring the whole "QR + strain + button" group into view, not just the input.
-    const btn=$('openBtn'), ok=$('okey');
-    try{ btn.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ try{ ok.scrollIntoView(); }catch(e2){} }
-    // Nudge a little further so the QR above stays visible on short screens.
-    setTimeout(()=>{ try{ window.scrollBy({top:24, behavior:'smooth'}); }catch(e){}
-      try{ ok.focus({preventScroll:true}); }catch(e){ ok.focus(); } }, 420); }
+    // Put the strain field high on screen, with the QR just above it and the button below.
+    const ok=$('okey');
+    const go=()=>{ try{
+        const r=ok.getBoundingClientRect();
+        // aim to leave ~34% of the viewport above the field: QR stays visible, button below is reachable
+        const target=window.scrollY + r.top - (window.innerHeight*0.34);
+        window.scrollTo({top:Math.max(0,target), behavior:'smooth'});
+      }catch(e){ try{ ok.scrollIntoView({block:'center'}); }catch(e2){} } };
+    go();
+    setTimeout(()=>{ go(); try{ ok.focus({preventScroll:true}); }catch(e){ ok.focus(); } }, 420); }
   function openFromHash(){ const m=location.hash.match(/[#&]p=([^&]+)/);
     if(!m){ if(/[#&]card\b/.test(location.hash)){ tab(false); setStatus(t('st_card'),'bad'); lastNoQR=true; const dt=$('codeIn').closest('details'); if(dt) dt.open=true; return true; } return false; }
     let pl=m[1]; try{ pl=decodeURIComponent(pl); }catch(e){}
@@ -14065,6 +14069,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     showReceivedQR(pl);
     { const sr=$('camBtn').parentElement; if(sr) sr.style.display='none'; }   // scan buttons not needed via link
     { const sl=document.querySelector('#pOpen label[data-i18n="l_scan"]'); if(sl) sl.style.display='none'; }
+    { const sp=document.querySelector('#pOpen label[data-i18n="l_speed"]'); if(sp) sp.style.display='none';
+      const rg=$('speed'); if(rg){ rg.style.display='none'; const lbl=rg.nextElementSibling; if(lbl) lbl.style.display='none'; } }
+    { const dt=$('codeIn').closest('details'); if(dt) dt.style.display='none'; }
     setStatus(t('link_ready'),'ok');
     focusStrain();
     return true; }
