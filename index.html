@@ -2,16 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Plastophage · QR plastificato</title>
-  <meta name="theme-color" content="#02070a">
-  <meta name="description" content="Sigilla messaggi in QR bioluminescenti, leggibili solo con il ceppo giusto.">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Plastophage">
 <style>
   :root{ color-scheme:dark; }
   *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -194,7 +186,43 @@ details summary{ font-size:14px !important; padding:6px 0; }
 #eggBadge .et{ font-size:13px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#bffde9; }
 #eggBadge .eq{ font-size:13px; color:#9cc9bd; margin-top:5px; line-height:1.45; font-style:italic; }
 @keyframes eggIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+/* v38: plastic counter */
+#plasticBar{ margin:10px 0 2px; padding:9px 12px; border-radius:11px;
+  background:rgba(6,20,17,.6); border:1px solid rgba(124,255,212,.16);
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+#plasticBar .pn{ font-size:15px; font-weight:800; color:#bffde9; font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+#plasticBar .pl{ font-size:11px; color:#7fae9f; letter-spacing:.04em; line-height:1.35; flex:1; min-width:150px; }
+#plasticBar .pi{ font-size:10px; color:#5d8579; width:100%; margin-top:2px; }
+
+/* v38: plastic counter */
+
+/* v38: guess-the-strain game */
+#gameBox{ display:none; margin:12px 0 4px; padding:14px; border-radius:13px;
+  background:linear-gradient(135deg, rgba(124,255,212,.10), rgba(124,255,212,.03));
+  border:1px solid rgba(124,255,212,.32); }
+#gameBox.show{ display:block; }
+#gameBox .gt{ font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#bffde9; }
+#gameBox .gs{ font-size:14px; color:#d6fff2; margin-top:7px; line-height:1.45; }
+#gameBox .grow{ display:flex; gap:10px; margin-top:11px; flex-wrap:wrap; }
+#gameBox .gchip{ padding:9px 13px; border-radius:10px; font-size:13px; font-weight:700;
+  border:1px solid rgba(124,255,212,.35); color:#bffde9; background:rgba(4,18,15,.5); cursor:pointer; }
+#gameBox .gstat{ font-size:13px; color:#9cc9bd; margin-top:9px; font-variant-numeric:tabular-nums; }
+#gameClues{ margin-top:9px; }
+#gameClues .clue{ font-size:13.5px; color:#eafff7; margin-top:6px; padding:8px 11px; border-radius:9px;
+  background:rgba(4,18,15,.55); border-left:3px solid rgba(124,255,212,.5); }
+#gameSetup{ display:none; margin-top:10px; }
+#gameSetup.show{ display:block; }
 </style>
+
+  <meta name="theme-color" content="#02070a">
+  <meta name="description" content="Sigilla messaggi in QR bioluminescenti, leggibili solo con il ceppo giusto.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Plastophage">
 </head>
 <body>
   <div class="head">
@@ -205,6 +233,13 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <div class="t" data-i18n="title">Plastophage · QR plastificato</div>
     <div class="s" data-i18n-html="subtitle">Trasforma un messaggio in un QR-guscio bioluminescente. Chi lo scansiona vede solo plastica: per leggerlo deve applicare il <b>ceppo</b> giusto.</div>
   </div>
+
+  <div id="plasticBar">
+    <div class="pn" id="plasticNum">—</div>
+    <div class="pl" data-i18n="plastic_lbl">tonnellate di plastica prodotte nel mondo quest'anno</div>
+    <div class="pi" data-i18n="plastic_src">stima basata su 430,9 Mt prodotte nel 2024 (PlasticsEurope)</div>
+  </div>
+
 
   <div id="inviteBar">
     <div class="itxt" data-i18n="invite_txt">Ti piace? Invita amici a usare Plastophage</div>
@@ -232,6 +267,13 @@ details summary{ font-size:14px !important; padding:6px 0; }
     <label data-i18n="l_hint">indizio sul ceppo</label>
     <input id="shint" data-i18n-ph="ph_hint" placeholder="es. il nostro solito" maxlength="60" autocorrect="off" spellcheck="false">
     <label class="chk"><input type="checkbox" id="sdate" checked> <span data-i18n="l_date">stampa la data di oggi sull'immagine</span></label>
+    <label class="chk"><input type="checkbox" id="sgame"> <span data-i18n="l_game">trasformalo in una sfida: chi indovina il ceppo vince</span></label>
+    <div id="gameSetup">
+      <label data-i18n="l_clues">indizi progressivi (chi gioca li chiede uno alla volta)</label>
+      <input id="clue1" data-i18n-ph="ph_clue1" placeholder="1° indizio (vago)" maxlength="70" autocorrect="off">
+      <input id="clue2" data-i18n-ph="ph_clue2" placeholder="2° indizio" maxlength="70" autocorrect="off" style="margin-top:8px">
+      <input id="clue3" data-i18n-ph="ph_clue3" placeholder="3° indizio (quasi rivelatore)" maxlength="70" autocorrect="off" style="margin-top:8px">
+    </div>
     <label data-i18n="l_shape">forma dei moduli</label>
     <div class="opts" id="shapeOpts">
       <div class="pill on" data-shape="round" data-i18n="sh_round">Arrotondato</div>
@@ -295,6 +337,15 @@ details summary{ font-size:14px !important; padding:6px 0; }
       <div class="fl" data-i18n="from_label">messaggio da</div>
       <div class="fn" id="fromName"></div>
       <div class="fh" id="fromHint"></div>
+    </div>
+    <div id="gameBox">
+      <div class="gt" data-i18n="game_title">sfida: indovina il ceppo</div>
+      <div class="gs" id="gameMsg" data-i18n="game_intro">Prova a indovinare il ceppo. Ogni tentativo conta!</div>
+      <div id="gameClues"></div>
+      <div class="grow">
+        <div class="gchip" id="clueBtn" data-i18n="game_clue">Chiedi un indizio</div>
+      </div>
+      <div class="gstat" id="gameStat"></div>
     </div>
     <label data-i18n="l_okey">il tuo ceppo</label>
     <input id="okey" data-i18n-ph="ph_okey" placeholder="inserisci il ceppo" maxlength="80" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false">
@@ -12795,8 +12846,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_need:"Prima scansiona o incolla un codice.", st_need_card:"Nell'immagine caricata non c'era un codice leggibile. Se è la card di una foto plastificata, la foto è nel LINK ricevuto insieme alla card: aprilo, oppure incollalo qui sopra.", st_badcode:"Questo non sembra un codice plastificato (deve iniziare con PLST1.): controlla di aver incollato il link o il codice completo.",
     st_ok:"Ceppo compatibile. Il messaggio emerge dalla coltura.",
     st_bad:"Ceppo incompatibile: i batteri non riconoscono questo sigillo.",
-    badge_idle:"coltura in attesa", badge_scan:"scansiona un QR",
-    badge_ok:"ceppo compatibile", egg_found:"ceppo raro trovato!", badge_bad:"ceppo incompatibile",
+    badge_idle:"coltura in attesa", plastic_lbl:"tonnellate di plastica prodotte nel mondo quest\u2019anno", plastic_src:"stima basata su 430,9 Mt prodotte nel 2024 (PlasticsEurope)", badge_scan:"scansiona un QR",
+    badge_ok:"ceppo compatibile", l_game:"trasformalo in una sfida: chi indovina il ceppo vince", l_clues:"indizi progressivi (chi gioca li chiede uno alla volta)", ph_clue1:"1\u00b0 indizio (vago)", ph_clue2:"2\u00b0 indizio", ph_clue3:"3\u00b0 indizio (quasi rivelatore)", game_title:"sfida: indovina il ceppo", game_intro:"Qualcuno ti sfida: indovina il ceppo e libera i batteri. Ogni tentativo conta.", game_clue:"Chiedi un indizio", game_noclue:"Niente pi\u00f9 indizi: sei da solo.", game_stat:"Tentativi: {n} \u00b7 Tempo: {t}", game_wrong:"Ceppo incompatibile. Riprova \u2014 tentativo {n}.", game_won:"Hai eroso il ceppo! {n} tentativi in {t}.", game_share:"Condividi il risultato", game_share_msg:"Ho eroso il ceppo di Plastophage in {n} tentativi ({t})! Provaci anche tu:", game_hostinfo:"Ti conviene scegliere un ceppo indovinabile e scrivere 3 indizi, dal pi\u00f9 vago al pi\u00f9 rivelatore. Il ceppo NON viaggia nel link: comunicalo tu solo a fine partita, o lascia che lo indovinino.", egg_found:"ceppo raro trovato!", badge_bad:"ceppo incompatibile",
     cv_fail:"CEPPO INCOMPATIBILE", cv_fail2:"i batteri non riconoscono il sigillo",
     fm_hint:"tocca lo sfondo per chiudere",
     foot:"QR: qrcode-generator \u00b7 scansione: jsQR \u00b7 cifrario dimostrativo (ceppo simmetrico)",
@@ -12853,8 +12904,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_need:"Scan or paste a code first.", st_need_card:"The loaded image had no readable code. If it's a plasticized-photo card, the photo is in the LINK that came with the card: open it, or paste it above.", st_badcode:"This doesn't look like a plasticized code (it must start with PLST1.): make sure you pasted the full link or code.",
     st_ok:"Strain compatible. The message emerges from the culture.",
     st_bad:"Incompatible strain: the bacteria don't recognize this seal.",
-    badge_idle:"culture on standby", badge_scan:"scan a QR",
-    badge_ok:"strain compatible", egg_found:"rare strain found!", badge_bad:"strain incompatible",
+    badge_idle:"culture on standby", plastic_lbl:"tonnes of plastic produced worldwide this year", plastic_src:"estimate based on 430.9 Mt produced in 2024 (PlasticsEurope)", badge_scan:"scan a QR",
+    badge_ok:"strain compatible", l_game:"turn it into a challenge: whoever guesses the strain wins", l_clues:"progressive clues (players ask for them one at a time)", ph_clue1:"1st clue (vague)", ph_clue2:"2nd clue", ph_clue3:"3rd clue (almost revealing)", game_title:"challenge: guess the strain", game_intro:"Someone challenges you: guess the strain and release the bacteria. Every attempt counts.", game_clue:"Ask for a clue", game_noclue:"No more clues: you're on your own.", game_stat:"Attempts: {n} \u00b7 Time: {t}", game_wrong:"Incompatible strain. Try again \u2014 attempt {n}.", game_won:"You eroded the strain! {n} attempts in {t}.", game_share:"Share the result", game_share_msg:"I eroded the Plastophage strain in {n} attempts ({t})! Try it yourself:", game_hostinfo:"Pick a guessable strain and write 3 clues, from vaguest to most revealing. The strain does NOT travel in the link: reveal it at the end, or let them guess it.", egg_found:"rare strain found!", badge_bad:"strain incompatible",
     cv_fail:"INCOMPATIBLE STRAIN", cv_fail2:"the bacteria don't recognize the seal",
     fm_hint:"tap the background to close",
     foot:"QR: qrcode-generator \u00b7 scanning: jsQR \u00b7 demo cipher (symmetric strain)",
@@ -12974,9 +13025,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_badcode:"Esto no parece un c\u00f3digo plastificado (debe empezar por PLST1.): aseg\u00farate de haber pegado el enlace o el c\u00f3digo completo.",
     st_ok:"Cepa compatible. El mensaje emerge del cultivo.",
     st_bad:"Cepa incompatible: las bacterias no reconocen este sello.",
-    badge_idle:"cultivo en espera",
+    badge_idle:"cultivo en espera", plastic_lbl:"toneladas de pl\u00e1stico producidas en el mundo este a\u00f1o", plastic_src:"estimaci\u00f3n basada en 430,9 Mt producidas en 2024 (PlasticsEurope)",
     badge_scan:"escanea un QR",
-    badge_ok:"cepa compatible", egg_found:"\u00a1cepa rara encontrada!",
+    badge_ok:"cepa compatible", l_game:"convi\u00e9rtelo en un desaf\u00edo: gana quien adivine la cepa", l_clues:"pistas progresivas (los jugadores las piden una a una)", ph_clue1:"1\u00aa pista (vaga)", ph_clue2:"2\u00aa pista", ph_clue3:"3\u00aa pista (casi reveladora)", game_title:"desaf\u00edo: adivina la cepa", game_intro:"Alguien te desaf\u00eda: adivina la cepa y libera las bacterias. Cada intento cuenta.", game_clue:"Pedir una pista", game_noclue:"No hay m\u00e1s pistas: est\u00e1s solo.", game_stat:"Intentos: {n} \u00b7 Tiempo: {t}", game_wrong:"Cepa incompatible. Int\u00e9ntalo de nuevo \u2014 intento {n}.", game_won:"\u00a1Erosionaste la cepa! {n} intentos en {t}.", game_share:"Compartir el resultado", game_share_msg:"\u00a1Erosion\u00e9 la cepa de Plastophage en {n} intentos ({t})! Int\u00e9ntalo t\u00fa:", game_hostinfo:"Elige una cepa adivinable y escribe 3 pistas, de la m\u00e1s vaga a la m\u00e1s reveladora. La cepa NO viaja en el enlace: rev\u00e9lala al final, o deja que la adivinen.", egg_found:"\u00a1cepa rara encontrada!",
     badge_bad:"cepa incompatible",
     cv_fail:"CEPA INCOMPATIBLE",
     cv_fail2:"las bacterias no reconocen el sello",
@@ -13099,9 +13150,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_badcode:"Cela ne ressemble pas \u00e0 un code plastifi\u00e9 (il doit commencer par PLST1.) : v\u00e9rifie que tu as coll\u00e9 le lien ou le code complet.",
     st_ok:"Souche compatible. Le message \u00e9merge de la culture.",
     st_bad:"Souche incompatible : les bact\u00e9ries ne reconnaissent pas ce sceau.",
-    badge_idle:"culture en attente",
+    badge_idle:"culture en attente", plastic_lbl:"tonnes de plastique produites dans le monde cette ann\u00e9e", plastic_src:"estimation bas\u00e9e sur 430,9 Mt produites en 2024 (PlasticsEurope)",
     badge_scan:"scanne un QR",
-    badge_ok:"souche compatible", egg_found:"souche rare trouv\u00e9e\u00a0!",
+    badge_ok:"souche compatible", l_game:"transforme-le en d\u00e9fi\u00a0: celui qui devine la souche gagne", l_clues:"indices progressifs (les joueurs les demandent un par un)", ph_clue1:"1er indice (vague)", ph_clue2:"2e indice", ph_clue3:"3e indice (presque r\u00e9v\u00e9lateur)", game_title:"d\u00e9fi\u00a0: devine la souche", game_intro:"Quelqu\u2019un te d\u00e9fie\u00a0: devine la souche et lib\u00e8re les bact\u00e9ries. Chaque tentative compte.", game_clue:"Demander un indice", game_noclue:"Plus d\u2019indices\u00a0: tu es seul.", game_stat:"Tentatives\u00a0: {n} \u00b7 Temps\u00a0: {t}", game_wrong:"Souche incompatible. Réessaie \u2014 tentative {n}.", game_won:"Tu as \u00e9rod\u00e9 la souche\u00a0! {n} tentatives en {t}.", game_share:"Partager le r\u00e9sultat", game_share_msg:"J\u2019ai \u00e9rod\u00e9 la souche de Plastophage en {n} tentatives ({t})\u00a0! Essaie aussi\u00a0:", game_hostinfo:"Choisis une souche devinable et \u00e9cris 3 indices, du plus vague au plus r\u00e9v\u00e9lateur. La souche ne voyage PAS dans le lien\u00a0: r\u00e9v\u00e8le-la \u00e0 la fin, ou laisse-les deviner.", egg_found:"souche rare trouv\u00e9e\u00a0!",
     badge_bad:"souche incompatible",
     cv_fail:"SOUCHE INCOMPATIBLE",
     cv_fail2:"les bact\u00e9ries ne reconnaissent pas le sceau",
@@ -13224,9 +13275,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_badcode:"Das sieht nicht nach einem plastifizierten Code aus (er muss mit PLST1. beginnen): stelle sicher, dass du den vollst\u00e4ndigen Link oder Code eingef\u00fcgt hast.",
     st_ok:"Stamm kompatibel. Die Nachricht taucht aus der Kultur auf.",
     st_bad:"Inkompatibler Stamm: die Bakterien erkennen dieses Siegel nicht.",
-    badge_idle:"Kultur im Standby",
+    badge_idle:"Kultur im Standby", plastic_lbl:"Tonnen Plastik weltweit in diesem Jahr produziert", plastic_src:"Sch\u00e4tzung auf Basis von 430,9 Mt im Jahr 2024 (PlasticsEurope)",
     badge_scan:"scanne einen QR",
-    badge_ok:"Stamm kompatibel", egg_found:"seltener Stamm gefunden!",
+    badge_ok:"Stamm kompatibel", l_game:"mach daraus eine Challenge: wer den Stamm err\u00e4t, gewinnt", l_clues:"fortschreitende Hinweise (Spieler fragen sie einzeln ab)", ph_clue1:"1. Hinweis (vage)", ph_clue2:"2. Hinweis", ph_clue3:"3. Hinweis (fast verratend)", game_title:"Challenge: errate den Stamm", game_intro:"Jemand fordert dich heraus: errate den Stamm und setze die Bakterien frei. Jeder Versuch z\u00e4hlt.", game_clue:"Hinweis anfordern", game_noclue:"Keine Hinweise mehr: du bist auf dich gestellt.", game_stat:"Versuche: {n} \u00b7 Zeit: {t}", game_wrong:"Inkompatibler Stamm. Versuch\u2019s nochmal \u2014 Versuch {n}.", game_won:"Du hast den Stamm erodiert! {n} Versuche in {t}.", game_share:"Ergebnis teilen", game_share_msg:"Ich habe den Plastophage-Stamm in {n} Versuchen erodiert ({t})! Probier es selbst:", game_hostinfo:"W\u00e4hle einen erratbaren Stamm und schreibe 3 Hinweise, vom vagsten zum verratendsten. Der Stamm reist NICHT im Link: verrate ihn am Ende, oder lass ihn erraten.", egg_found:"seltener Stamm gefunden!",
     badge_bad:"Stamm inkompatibel",
     cv_fail:"INKOMPATIBLER STAMM",
     cv_fail2:"die Bakterien erkennen das Siegel nicht",
@@ -13349,9 +13400,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     st_badcode:"Isto n\u00e3o parece um c\u00f3digo plastificado (deve come\u00e7ar por PLST1.): confirma que colaste o link ou o c\u00f3digo completo.",
     st_ok:"Estirpe compat\u00edvel. A mensagem emerge da cultura.",
     st_bad:"Estirpe incompat\u00edvel: as bact\u00e9rias n\u00e3o reconhecem este selo.",
-    badge_idle:"cultura em espera",
+    badge_idle:"cultura em espera", plastic_lbl:"toneladas de pl\u00e1stico produzidas no mundo este ano", plastic_src:"estimativa baseada em 430,9 Mt produzidas em 2024 (PlasticsEurope)",
     badge_scan:"digitaliza um QR",
-    badge_ok:"estirpe compat\u00edvel", egg_found:"estirpe rara encontrada!",
+    badge_ok:"estirpe compat\u00edvel", l_game:"transforma-o num desafio: quem adivinhar a estirpe ganha", l_clues:"pistas progressivas (os jogadores pedem-nas uma a uma)", ph_clue1:"1.\u00aa pista (vaga)", ph_clue2:"2.\u00aa pista", ph_clue3:"3.\u00aa pista (quase reveladora)", game_title:"desafio: adivinha a estirpe", game_intro:"Algu\u00e9m te desafia: adivinha a estirpe e liberta as bact\u00e9rias. Cada tentativa conta.", game_clue:"Pedir uma pista", game_noclue:"Sem mais pistas: est\u00e1s por tua conta.", game_stat:"Tentativas: {n} \u00b7 Tempo: {t}", game_wrong:"Estirpe incompat\u00edvel. Tenta de novo \u2014 tentativa {n}.", game_won:"Erodiste a estirpe! {n} tentativas em {t}.", game_share:"Partilhar o resultado", game_share_msg:"Erodi a estirpe do Plastophage em {n} tentativas ({t})! Experimenta tamb\u00e9m:", game_hostinfo:"Escolhe uma estirpe adivinh\u00e1vel e escreve 3 pistas, da mais vaga \u00e0 mais reveladora. A estirpe N\u00c3O viaja no link: revela-a no fim, ou deixa que a adivinhem.", egg_found:"estirpe rara encontrada!",
     badge_bad:"estirpe incompat\u00edvel",
     cv_fail:"ESTIRPE INCOMPAT\u00cdVEL",
     cv_fail2:"as bact\u00e9rias n\u00e3o reconhecem o selo",
@@ -13450,6 +13501,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     try{ lastDataURL=qc.toDataURL('image/png'); $('qrImg').src=lastDataURL; $('shareMsg').innerHTML=t('h_share_ok'); }
     catch(e){ $('shareMsg').textContent=t('h_share_err'); }
   }
+  if($('sgame')){ $('sgame').addEventListener('change',()=>{
+    $('gameSetup').classList.toggle('show', $('sgame').checked);
+    if($('sgame').checked) $('shareMsg').innerHTML=t('game_hostinfo'); }); }
   $('genBtn').onclick=genQR;
   function dataURLtoBlob(u){ const parts=u.split(','); const bin=atob(parts[1]); const a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type:'image/png'}); }
   async function copyText(txt, okKey){ if(!txt) return;
@@ -13506,8 +13560,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function senderName(){ const e=$('sfrom'); return (e&&e.value.trim())||''; }
   function strainHint(){ const e=$('shint'); return (e&&e.value.trim())||''; }
   function senderPrefix(){ const n=senderName(); return n ? (t('from_prefix')+n+'\n') : ''; }
+  function gameClues(){ const c=[$('clue1'),$('clue2'),$('clue3')].map(e=>(e&&e.value.trim())||'').filter(Boolean); return c; }
+  function gameOn(){ const e=$('sgame'); return !!(e && e.checked); }
   function metaSuffix(){ const n=senderName(), h=strainHint(); let q='';
-    if(n) q+='&f='+encodeURIComponent(n); if(h) q+='&h='+encodeURIComponent(h); return q; }
+    if(n) q+='&f='+encodeURIComponent(n); if(h) q+='&h='+encodeURIComponent(h);
+    if(gameOn()){ q+='&g=1';
+      const cl=gameClues();
+      if(cl.length){ try{ q+='&c='+encodeURIComponent(btoa(unescape(encodeURIComponent(cl.join('|'))))); }catch(e){} } }
+    return q; }
   function qrContent(pl){ return (curMode==='link' && SHARE_BASE) ? (SHARE_BASE+'#p='+encodeURIComponent(pl)+metaSuffix()) : pl; }
   function syncMode(){ const o=$('modeOpts'); if(!o) return;
     [...o.children].forEach(x=>{ x.classList.toggle('dis', (!SHARE_BASE && x.getAttribute('data-mode')==='link'));
@@ -13651,16 +13711,21 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const glowViolet=makeGlow('rgba(230,200,255,.95)','rgba(170,110,240,.5)');
   const glowBlue=makeGlow('rgba(200,230,255,.95)','rgba(90,160,240,.5)');
   // Easter eggs: keyed by normalized strain. glow: alt sprite; speed: extra erosion boost; title/quote localized.
+  // fx: 'burst'  = shockwave from the centre + swirling swarm
+  //     'bloom'   = colonies blossom outward in soft waves
+  //     'storm'   = fast, aggressive, chaotic
+  //     'spiral'  = bacteria spiral inwards
   const EGGS={
-    'plastophage':{ glow:glowGold, speed:0.28, k:'plastophage' },
-    'ceppo-zero':{ glow:glowRed, speed:0.30, k:'zero' },
-    'ceppo zero':{ glow:glowRed, speed:0.30, k:'zero' },
-    'elena':{ glow:glowViolet, speed:0.10, k:'elena' },
-    'stein':{ glow:glowRed, speed:0.14, k:'stein' },
-    'biofilm':{ glow:glowBlue, speed:0.12, k:'biofilm' },
-    'ideonella':{ glow:glowBlue, speed:0.16, k:'ideonella' },
-    'jason barkley':{ glow:glowGold, speed:0.20, k:'author' }
+    'plastophage':{ glow:glowGold,   speed:0.28, k:'plastophage', fx:'burst'  },
+    'ceppo-zero':{  glow:glowRed,    speed:0.30, k:'zero',        fx:'storm'  },
+    'ceppo zero':{  glow:glowRed,    speed:0.30, k:'zero',        fx:'storm'  },
+    'elena':{       glow:glowViolet, speed:0.10, k:'elena',       fx:'bloom'  },
+    'stein':{       glow:glowRed,    speed:0.14, k:'stein',       fx:'spiral' },
+    'biofilm':{     glow:glowBlue,   speed:0.12, k:'biofilm',     fx:'bloom'  },
+    'ideonella':{   glow:glowBlue,   speed:0.16, k:'ideonella',   fx:'spiral' },
+    'jason barkley':{glow:glowGold,  speed:0.20, k:'author',      fx:'burst'  }
   };
+  let eggFX=null, eggT0=0;
   const EGG_QUOTES={
     it:{ plastophage:'Il batterio che divora la plastica \u2014 e forse molto di pi\u00f9.',
          zero:'Tutto \u00e8 iniziato da un solo ceppo. Il Ceppo Zero.',
@@ -13786,23 +13851,47 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     cover.push({x:Math.random()*CW,y:Math.random()*CH,m:3+Math.random()*4,pts,rot:Math.random()*Math.PI}); } }
   function randomCloud(){ const p=[]; for(let i=0;i<420;i++) p.push({x:CW*0.2+Math.random()*CW*0.6,y:CH*0.25+Math.random()*CH*0.5}); return p; }
   let eggPending=null;
+  let roamers=[];   // free-roaming bacteria: they eat the scraps the main trails miss
+  function spawnRoamers(n, eggBoost){
+    roamers=[];
+    const count=Math.max(0, n|0);
+    for(let i=0;i<count;i++){
+      const edge=Math.random();
+      let x,y;
+      if(edge<.5){ x=Math.random()*CW; y=Math.random()<.5? -8 : CH+8; }
+      else { x=Math.random()<.5? -8 : CW+8; y=Math.random()*CH; }
+      const a=Math.random()*6.283;
+      roamers.push({ x:x, y:y,
+        vx:Math.cos(a), vy:Math.sin(a),
+        wob:Math.random()*6.283,          // wander phase
+        ws:0.6+Math.random()*1.5,         // wander speed
+        sp:0.28+Math.random()*0.34,        // base speed (slow, exploratory)
+        r:0.75+Math.random()*0.7,         // size factor
+        boost:eggBoost?1.25:1 });
+    }
+  }
   function enterFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.add('full'); document.body.classList.add('revealing');
     void d.offsetWidth; fit(); }
   function exitFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.remove('full'); document.body.classList.remove('revealing');
-    $('eggBadge').classList.remove('show'); scene='idle'; fit(); }
+    $('eggBadge').classList.remove('show'); scene='idle'; roamers=[]; eggFX=null; fit(); }
+  $('clueBtn').onclick=nextClue;
   $('dishClose').addEventListener('click',(e)=>{ e.stopPropagation(); exitFull(); });
   $('cv').addEventListener('click',()=>{ const d=document.querySelector('.dish'); if(d && d.classList.contains('full')) exitFull(); });
   function reveal(ok,msg,strain){ enterFull(); fit(); qrReady = payload ? renderQRCover(payload) : false; if(!qrReady) makeCover(480); coverAlpha=1; bugs=[]; phaseStart=performance.now(); revealDone=false;
     $('eggBadge').classList.remove('show'); eggGlow=null; eggPending=null;
-    if(ok && strain){ const egg=EGGS[normKey(strain)]; if(egg){ eggGlow=egg.glow||null; if(egg.speed) revSpeed=Math.max(revSpeed,egg.speed); eggPending=egg.k; } }
+    eggFX=null;
+    if(ok && strain){ const egg=EGGS[normKey(strain)]; if(egg){ eggGlow=egg.glow||null; if(egg.speed) revSpeed=Math.max(revSpeed,egg.speed); eggPending=egg.k; eggFX=egg.fx||null; eggT0=performance.now(); } }
     revealLayout = ok ? layoutText(msg) : null; revealMsg = ok ? msg : ''; if(ok) buildTextSprite(revealLayout,msg);
     const targets = ok ? pointsFromLayout(revealLayout) : randomCloud();
     const N=Math.min(targets.length,2200);
     for(let i=0;i<N;i++){ const t=targets[i%targets.length]; const side=Math.random(); let sx,sy;
       if(side<.5){ sx=Math.random()*CW; sy=Math.random()<.5?-10:CH+10; } else { sx=Math.random()<.5?-10:CW+10; sy=Math.random()*CH; }
       bugs.push({x:sx,y:sy,tx:t.x,ty:t.y,settled:false,e:Math.random()}); }
+    // roaming bacteria: scale with the dish size; easter eggs get a bigger, faster swarm
+    { const area=Math.max(1,CW*CH), base=Math.round(Math.min(90, Math.max(26, area/9000)));
+      spawnRoamers(ok ? Math.round(base*(eggPending?1.9:1)) : Math.round(base*0.5), !!eggPending); }
     scene=ok?'reveal':'fail'; $('badge').textContent=ok?t('badge_ok'):t('badge_bad'); }
   function frame(){
     ctx.globalCompositeOperation='source-over'; ctx.fillStyle='rgba(2,7,10,.28)'; ctx.fillRect(0,0,CW,CH);
@@ -13828,7 +13917,86 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         else { settledN++; const pulse=scene==='reveal'?(0.8+0.2*Math.sin(el*3+b.e*6)):0.5; ctx.globalAlpha=0.8*pulse;
           const sz=scene==='reveal'?dsz:6; ctx.drawImage(eggGlow||glow,b.x-sz/2,b.y-sz/2,sz,sz); }
         if(eroding){ qctx.beginPath(); qctx.arc(b.x,b.y,eraseR,0,6.283); qctx.fill(); } }
+
+      // --- free-roaming bacteria: wander around and eat the scraps the trails left behind ---
+      if(roamers.length){
+        const rSpeed = (scene==='reveal' ? (0.34 + 0.85*revSpeed) : 0.5);
+        const rErase = eraseR*0.72;
+        for(let i=0;i<roamers.length;i++){ const w=roamers[i];
+          // steer with a slow random wander (curved, organic paths)
+          w.wob += 0.011*w.ws;
+          const turn=(Math.sin(w.wob*1.7)+Math.sin(w.wob*0.6+1.3))*0.055 + (Math.random()-0.5)*0.045;
+          const ca=Math.cos(turn), sa=Math.sin(turn);
+          const nvx=w.vx*ca - w.vy*sa, nvy=w.vx*sa + w.vy*ca;
+          w.vx=nvx; w.vy=nvy;
+          let sp=rSpeed*w.sp*w.boost;
+          // easter-egg choreography
+          if(eggFX){
+            const cx=CW/2, cy=CH/2, dx=w.x-cx, dy=w.y-cy, dist=Math.hypot(dx,dy)||1;
+            if(eggFX==='spiral'){            // curl inwards around the centre
+              const tx=-dy/dist, ty=dx/dist;                   // tangential
+              w.vx = w.vx*0.90 + (tx*0.75 - dx/dist*0.30)*0.55;
+              w.vy = w.vy*0.90 + (ty*0.75 - dy/dist*0.30)*0.55;
+            } else if(eggFX==='burst'){      // pushed outwards, then drift back
+              const ph=(performance.now()-eggT0)/1000;
+              const out=Math.max(0, 1-ph*0.7);
+              w.vx = w.vx*0.92 + (dx/dist)*out*0.55;
+              w.vy = w.vy*0.92 + (dy/dist)*out*0.55;
+            } else if(eggFX==='storm'){      // chaotic and fast
+              w.vx += (Math.random()-0.5)*0.30; w.vy += (Math.random()-0.5)*0.30;
+              const m=Math.hypot(w.vx,w.vy)||1; w.vx/=m; w.vy/=m; sp*=1.2;
+            } else if(eggFX==='bloom'){      // gentle breathing waves
+              const ph=(performance.now()-eggT0)/1000;
+              const puff=Math.sin(ph*1.6 + dist*0.02)*0.35;
+              w.vx = w.vx*0.94 + (dx/dist)*puff*0.5;
+              w.vy = w.vy*0.94 + (dy/dist)*puff*0.5;
+            }
+          }
+          w.x+=w.vx*sp; w.y+=w.vy*sp;
+          // soft-bounce off the edges so they stay in the dish
+          if(w.x<2){ w.x=2; w.vx=Math.abs(w.vx); } else if(w.x>CW-2){ w.x=CW-2; w.vx=-Math.abs(w.vx); }
+          if(w.y<2){ w.y=2; w.vy=Math.abs(w.vy); } else if(w.y>CH-2){ w.y=CH-2; w.vy=-Math.abs(w.vy); }
+          const sz=dsz*0.9*w.r;
+          ctx.globalAlpha=0.34+0.16*Math.sin(w.wob*2.2);
+          ctx.drawImage(eggGlow||glow, w.x-sz/2, w.y-sz/2, sz, sz);
+          if(eroding){ qctx.beginPath(); qctx.arc(w.x,w.y,rErase,0,6.283); qctx.fill(); }
+        }
+        ctx.globalAlpha=1;
+      }
       if(eroding) qctx.globalCompositeOperation='source-over';
+
+      // --- easter-egg spectacle: expanding shockwave + colour bloom ---
+      if(eggFX && scene==='reveal'){
+        const ph=(performance.now()-eggT0)/1000;
+        ctx.globalCompositeOperation='lighter';
+        // expanding rings (burst/storm get sharper rings, bloom gets soft haloes)
+        const rings = (eggFX==='burst'||eggFX==='storm') ? 3 : 2;
+        for(let k=0;k<rings;k++){
+          const t0=ph - k*0.42;
+          if(t0<=0 || t0>1.7) continue;
+          const rr=t0*Math.max(CW,CH)*0.62;
+          const a=Math.max(0, (1-t0/1.7))*(eggFX==='bloom'?0.13:0.20);
+          ctx.beginPath(); ctx.arc(CW/2,CH/2,rr,0,6.283);
+          ctx.lineWidth=(eggFX==='bloom'?10:5)*(1-t0*0.5);
+          ctx.strokeStyle='rgba(190,255,232,'+a+')';
+          ctx.stroke();
+          // NOTE: the rings are light only. The plastic is eaten by the BACTERIA, never by the wave.
+        }
+        // sparks flying off for the loud ones
+        if(eggFX==='burst'||eggFX==='storm'){
+          const n=14;
+          for(let k=0;k<n;k++){
+            const a=(k/n)*6.283 + ph*(eggFX==='storm'?2.2:0.9);
+            const rr=(ph*0.55+0.12)*Math.min(CW,CH)*0.55*(0.7+0.3*Math.sin(k*3.1));
+            const x=CW/2+Math.cos(a)*rr, y=CH/2+Math.sin(a)*rr;
+            const sz=dsz*(1.5+0.6*Math.sin(ph*6+k));
+            ctx.globalAlpha=Math.max(0,0.5-ph*0.22);
+            ctx.drawImage(eggGlow||glow, x-sz/2, y-sz/2, sz, sz);
+          }
+        }
+        ctx.globalAlpha=1;
+      }
+
       ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
       const frac=bugs.length?settledN/bugs.length:1;
       if(scene==='reveal' && !revealDone && frac>=0.985){ revealDone=true; if(eggPending){ showEggBadge(eggPending); } }
@@ -13860,9 +14028,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(payload.indexOf('PLST1.')!==0){ setStatus(t('st_badcode'),'bad'); return; }
     if(!k){ $('okey').focus(); return; }
     const r=decode(payload,k);
-    if(r.ok){ reveal(true,r.msg,k); scrollToDish(); setStatus(t('st_ok'),'ok'); $('vidBtn').style.display='block'; $('vidWrap').style.display='none';
+    if(r.ok){ gameWon(); reveal(true,r.msg,k); scrollToDish(); setStatus(t('st_ok'),'ok'); $('vidBtn').style.display='block'; $('vidWrap').style.display='none';
       setTimeout(()=>{ pl.textContent=r.msg; pl.classList.add('show'); },1400); }
-    else { reveal(false,''); scrollToDish(); setStatus(t('st_bad'),'bad'); $('vidBtn').style.display='none'; $('vidWrap').style.display='none'; } };
+    else { gameWrong(); reveal(false,''); scrollToDish(); setStatus(t('st_bad'),'bad'); $('vidBtn').style.display='none'; $('vidWrap').style.display='none'; } };
 
   // ---------- video export (9:16 reveal) ----------
   const VW=720, VH=1280;
@@ -14032,6 +14200,53 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       $('fromName').style.display = name ? 'block' : 'none';
       box.style.display='block'; }
     else { box.style.display='none'; } }
+  // --- guess-the-strain game (fully local: attempts and time are counted on this device) ---
+  let gameActive=false, gameTries=0, gameT0=0, gameCluesArr=[], gameShown=0;
+  function fmtTime(ms){ const s2=Math.floor(ms/1000), m=Math.floor(s2/60), r=s2%60;
+    return m? (m+'m '+String(r).padStart(2,'0')+'s') : (r+'s'); }
+  function parseGame(str){
+    const g=/[#&]g=1\b/.test(String(str));
+    let clues=[];
+    const cm=String(str).match(/[#&]c=([^&\s]+)/);
+    if(cm){ try{ clues=decodeURIComponent(escape(atob(decodeURIComponent(cm[1])))).split('|').filter(Boolean); }catch(e){ clues=[]; } }
+    return {on:g, clues:clues};
+  }
+  function startGame(clues){
+    gameActive=true; gameTries=0; gameT0=performance.now(); gameCluesArr=clues||[]; gameShown=0;
+    $('gameBox').classList.add('show');
+    $('gameMsg').textContent=t('game_intro');
+    $('gameClues').innerHTML='';
+    $('gameStat').textContent='';
+    $('clueBtn').style.display = gameCluesArr.length ? 'block' : 'none';
+  }
+  function nextClue(){
+    if(gameShown>=gameCluesArr.length){ $('gameMsg').textContent=t('game_noclue'); $('clueBtn').style.display='none'; return; }
+    const d=document.createElement('div'); d.className='clue';
+    d.textContent=(gameShown+1)+'. '+gameCluesArr[gameShown]; $('gameClues').appendChild(d);
+    gameShown++;
+    if(gameShown>=gameCluesArr.length) $('clueBtn').style.display='none';
+  }
+  function gameWrong(){
+    if(!gameActive) return; gameTries++;
+    $('gameMsg').textContent=t('game_wrong').replace('{n}',gameTries);
+    $('gameStat').textContent=t('game_stat').replace('{n}',gameTries).replace('{t}',fmtTime(performance.now()-gameT0));
+  }
+  function gameWon(){
+    if(!gameActive) return; gameTries++;
+    const tt=fmtTime(performance.now()-gameT0);
+    $('gameMsg').textContent=t('game_won').replace('{n}',gameTries).replace('{t}',tt);
+    $('gameStat').textContent='';
+    $('gameClues').innerHTML=''; $('clueBtn').style.display='none';
+    // offer to share the score
+    const b=document.createElement('div'); b.className='gchip'; b.textContent=t('game_share');
+    b.onclick=async()=>{ const msg=t('game_share_msg').replace('{n}',gameTries).replace('{t}',tt)+'\n'+appLink();
+      if(!IS_DESKTOP && navigator.share){ try{ await navigator.share({title:t('invite_title'), text:msg}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
+      try{ if(navigator.clipboard) await navigator.clipboard.writeText(msg); }catch(e){}
+      window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener'); };
+    const row=document.createElement('div'); row.className='grow'; row.appendChild(b);
+    $('gameClues').appendChild(row);
+    gameActive=false;
+  }
   function parseMeta(str){ let n='',h=''; const fm=String(str).match(/[#&]f=([^&\s]+)/); const hm=String(str).match(/[#&]h=([^&\s]+)/);
     if(fm){ try{ n=decodeURIComponent(fm[1]); }catch(e){ n=fm[1]; } } if(hm){ try{ h=decodeURIComponent(hm[1]); }catch(e){ h=hm[1]; } } return {n:n,h:h}; }
   function showReceivedQR(pl){
@@ -14067,6 +14282,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     tab(false); gotPayload(pl,'st_received');
     { const mm=parseMeta(location.hash); showMeta(mm.n,mm.h); }
     showReceivedQR(pl);
+    { const gg=parseGame(location.hash); if(gg.on) startGame(gg.clues); }
     { const sr=$('camBtn').parentElement; if(sr) sr.style.display='none'; }   // scan buttons not needed via link
     { const sl=document.querySelector('#pOpen label[data-i18n="l_scan"]'); if(sl) sl.style.display='none'; }
     { const sp=document.querySelector('#pOpen label[data-i18n="l_speed"]'); if(sp) sp.style.display='none';
@@ -14076,6 +14292,27 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     focusStrain();
     return true; }
   window.addEventListener('hashchange',openFromHash);
+  // ---------- plastic counter ----------
+  // Baseline: 430.9 Mt produced globally in 2024 (PlasticsEurope). Recent CAGR ~4.1%.
+  // We show an ESTIMATE of tonnes produced since 1 January of the current year.
+  (function plasticCounter(){
+    const BASE_MT=430.9e6, BASE_YEAR=2024, GROWTH=0.041;
+    const el=$('plasticNum'); if(!el) return;
+    function rate(){ const y=new Date().getFullYear();
+      const annual=BASE_MT*Math.pow(1+GROWTH, y-BASE_YEAR);
+      const yr=new Date(y,0,1), nx=new Date(y+1,0,1);
+      return annual/((nx-yr)/1000); }            // tonnes per second this year
+    function tick(){
+      const now=new Date(), y=now.getFullYear();
+      const secs=(now-new Date(y,0,1))/1000;
+      const tonnes=rate()*secs;
+      const LOC={it:'it-IT',en:'en-GB',es:'es-ES',fr:'fr-FR',de:'de-DE',pt:'pt-PT'};
+      el.textContent=Math.floor(tonnes).toLocaleString(LOC[LANG]||'en-GB');
+      setTimeout(tick, 200);
+    }
+    tick();
+  })();
+
   applyLang();
   const viaLink=openFromHash();
   if(!viaLink && store.get('plst_onb')!=='1') openOnb();
