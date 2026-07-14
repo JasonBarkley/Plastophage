@@ -13835,47 +13835,43 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const tw=Math.max(1,CW), th=Math.max(1,CH);
     emojiSprite.width=tw; emojiSprite.height=th;
     const ec=emojiSprite.getContext('2d'); ec.clearRect(0,0,tw,th);
-    // Draw the SAME lines, with the SAME centring pass as the base text, but paint only the
-    // emoji: every other character is replaced by a space of identical width. This guarantees
-    // the emoji land exactly where the browser put them in the base text (no manual x maths).
-    ec.font='700 '+L.fs+'px '+FONT; ec.textAlign='center'; ec.textBaseline='middle';
+    ec.font='700 '+L.fs+'px '+FONT; ec.textAlign='left'; ec.textBaseline='middle';
     const totalH=L.lines.length*L.lh, y0=th/2-totalH/2+L.lh/2;
     const seg=(typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined,{granularity:'grapheme'}) : null;
     const graphemes=(str)=> seg ? [...seg.segment(str)].map(g=>g.segment) : Array.from(str);
     L.lines.forEach((ln,i)=>{
-      const y=y0+i*L.lh;
       const units=graphemes(ln);
       if(!units.some(hasEmoji)) return;
-      // Build a masked line: emoji kept, everything else made transparent.
-      // We paint the line twice: once fully transparent except emoji.
-      const x=tw/2;
-      // Paint each emoji at its true position by drawing the full line with a clip per emoji.
-      // Simpler and exact: draw the whole line, then erase the non-emoji parts is fragile.
-      // Instead: draw the line once per emoji, clipped to that emoji's advance box.
-      // Compute advances with the same context/font used for the real draw.
-      let acc=0; const adv=units.map(u=>{ const w=ec.measureText(u).width; const a=acc; acc+=w; return {u,a,w}; });
+      const y=y0+i*L.lh;
+      // measure the whole line the same way the base sprite does, then walk graphemes from its left edge
       const lineW=ec.measureText(ln).width;
-      const left=x-lineW/2;
-      for(const g of adv){
-        if(!hasEmoji(g.u)) continue;
-        emojiActive=true;
-        ec.save();
-        ec.beginPath();
-        // clip a generous box around this glyph's advance so neighbours never bleed in
-        ec.rect(left+g.a-1, y-L.lh*0.75, g.w+2, L.lh*1.5);
-        ec.clip();
-        ec.fillText(ln, x, y);   // identical shaping/centring as the base text
-        ec.restore();
+      let x=tw/2-lineW/2;
+      for(const g of units){
+        const w=ec.measureText(g).width;
+        if(hasEmoji(g)){ ec.fillText(g, x, y); emojiActive=true; }
+        x+=w;
       }
     });
   }
+  let spriteW=0, spriteH=0;   // the canvas size the sprites were built for
   const textSprite=document.createElement('canvas');
   function buildTextSprite(L,msg){
     const tw=Math.max(1,CW), th=Math.max(1,CH);
     const m=document.createElement('canvas'); m.width=tw; m.height=th; const mc=m.getContext('2d');
-    mc.font='700 '+L.fs+'px '+FONT; mc.textAlign='center'; mc.textBaseline='middle'; mc.fillStyle='#fff';
+    mc.font='700 '+L.fs+'px '+FONT; mc.textAlign='left'; mc.textBaseline='middle'; mc.fillStyle='#fff';
     const totalH=L.lines.length*L.lh, y0=th/2-totalH/2+L.lh/2;
-    L.lines.forEach((ln,i)=>mc.fillText(ln,tw/2,y0+i*L.lh));
+    const seg0=(typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined,{granularity:'grapheme'}) : null;
+    const graph0=(str)=> seg0 ? [...seg0.segment(str)].map(g=>g.segment) : Array.from(str);
+    L.lines.forEach((ln,i)=>{
+      const y=y0+i*L.lh;
+      const lineW=mc.measureText(ln).width;
+      let x=tw/2-lineW/2;
+      for(const g of graph0(ln)){
+        const w=mc.measureText(g).width;
+        if(!hasEmoji(g)) mc.fillText(g, x, y);   // emoji left blank: drawn crisp on top later
+        x+=w;
+      }
+    });
     let src; try{ src=mc.getImageData(0,0,tw,th); }catch(e){ textSprite.width=tw; textSprite.height=th; return; }
     const d=src.data, A=new Uint8Array(tw*th);
     for(let i=0;i<tw*th;i++) A[i]=d[i*4+3];
@@ -13887,8 +13883,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         if(near && Math.random()<fray*0.5) a=255; }
       if(a>0){ const oi=idx*4; o[oi]=R; o[oi+1]=G; o[oi+2]=B; o[oi+3]=a; } }
     textSprite.width=tw; textSprite.height=th; const tc=textSprite.getContext('2d'); tc.clearRect(0,0,tw,th); tc.putImageData(out,0,0);
+    spriteW=tw; spriteH=th;
     buildEmojiSprite(L,msg);
-    if(emojiActive){ tc.globalCompositeOperation='destination-out'; tc.drawImage(emojiSprite,0,0); tc.globalCompositeOperation='source-over'; }
   }
   let scene='idle',cover=[],bugs=[],coverAlpha=0,phaseStart=0,revSpeed=0.18,revealLayout=null,revealMsg='',revealDone=false;
   function makeCover(n){ cover=[]; for(let i=0;i<n;i++){ const v=3+(Math.random()*4|0),pts=[];
@@ -13917,7 +13913,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   function enterFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.add('full'); document.body.classList.add('revealing');
-    void d.offsetWidth; fit(); }
+    void d.offsetWidth; fit();
+    // iOS settles the fullscreen viewport over a frame or two: re-measure and rebuild
+    // the text sprite so it is never laid out for a stale canvas size.
+    const recheck=()=>{ const pw=CW, ph=CH; fit();
+      if((CW!==pw || CH!==ph) && scene==='reveal') relayoutReveal(); };
+    requestAnimationFrame(()=>{ recheck(); requestAnimationFrame(recheck); });
+  }
   function exitFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.remove('full'); document.body.classList.remove('revealing');
     $('eggBadge').classList.remove('show'); scene='idle'; roamers=[]; eggFX=null; fit(); }
@@ -14050,8 +14052,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(scene==='reveal' && revealLayout){ const ta=Math.max(0,Math.min(1,(frac-0.4)/0.45));
         if(ta>0){ ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=ta;
           ctx.shadowColor='rgba(124,255,212,0.9)'; ctx.shadowBlur=8;
-          ctx.drawImage(textSprite,0,0); ctx.shadowBlur=0;
-          if(emojiActive){ ctx.drawImage(emojiSprite,0,0); }
+          if(spriteW>0 && spriteH>0){ ctx.drawImage(textSprite,0,0,spriteW,spriteH,0,0,CW,CH); }
+          else { ctx.drawImage(textSprite,0,0,CW,CH); }
+          ctx.shadowBlur=0;
+          if(emojiActive){ if(spriteW>0 && spriteH>0){ ctx.drawImage(emojiSprite,0,0,spriteW,spriteH,0,0,CW,CH); } else { ctx.drawImage(emojiSprite,0,0,CW,CH); } }
           ctx.globalAlpha=1; } }
       if(scene==='fail'){ const ta=Math.max(0,Math.min(1,(el-0.5)/0.6));
         if(ta>0){ ctx.globalCompositeOperation='source-over'; ctx.textAlign='center'; ctx.textBaseline='middle';
