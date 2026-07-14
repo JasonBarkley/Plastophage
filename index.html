@@ -213,6 +213,12 @@ details summary{ font-size:14px !important; padding:6px 0; }
   background:rgba(4,18,15,.55); border-left:3px solid rgba(124,255,212,.5); }
 #gameSetup{ display:none; margin-top:10px; }
 #gameSetup.show{ display:block; }
+
+/* TEMP: debug readout */
+#dbg{ position:fixed; left:6px; top:6px; z-index:99; display:none; max-width:92vw;
+  background:rgba(0,0,0,.82); color:#7cffd4; font:11px/1.45 ui-monospace,monospace;
+  padding:8px 10px; border-radius:8px; border:1px solid rgba(124,255,212,.4); white-space:pre; }
+#dbg.show{ display:block; }
 </style>
 
   <meta name="theme-color" content="#02070a">
@@ -247,6 +253,7 @@ details summary{ font-size:14px !important; padding:6px 0; }
   </div>
 
   <div class="dish"><canvas id="cv"></canvas><div class="badge" id="badge">coltura in attesa</div><div id="eggBadge"><div class="et" id="eggTitle"></div><div class="eq" id="eggQuote"></div></div></div>
+  <div id="dbg"></div>
   <div id="dishClose">✕</div>
   <div id="dishHint" data-i18n="fm_hint">tocca lo sfondo per chiudere</div>
 
@@ -13854,6 +13861,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
   }
   let spriteW=0, spriteH=0;   // the canvas size the sprites were built for
+  const DBG={on:/[#&?]debug\b/.test(location.href), build:null};
+  function dbgShow(){ if(!DBG.on) return; const e=$('dbg'); if(!e) return;
+    const r=cv.getBoundingClientRect(); const b=DBG.build||{};
+    e.classList.add('show');
+    e.textContent=
+      'canvas rect: '+Math.round(r.width)+' x '+Math.round(r.height)+'\n'+
+      'CW/CH now:   '+CW+' x '+CH+'\n'+
+      'sprite:      '+spriteW+' x '+spriteH+'\n'+
+      'built@ CW:   '+(b.CW||'-')+'  rect:'+(b.rectW||'-')+'\n'+
+      'font size:   '+(b.fs||'-')+'  righe:'+(b.lines||'-')+'\n'+
+      'lineW:       '+(b.lineW||'-')+'  (maxW='+Math.round(CW*0.9)+')\n'+
+      'testo:       '+JSON.stringify((b.first||'').slice(0,24))+'\n'+
+      'DPR:         '+DPR+'  win:'+window.innerWidth+'x'+window.innerHeight;
+  }
   const textSprite=document.createElement('canvas');
   function buildTextSprite(L,msg){
     const tw=Math.max(1,CW), th=Math.max(1,CH);
@@ -13884,6 +13905,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(a>0){ const oi=idx*4; o[oi]=R; o[oi+1]=G; o[oi+2]=B; o[oi+3]=a; } }
     textSprite.width=tw; textSprite.height=th; const tc=textSprite.getContext('2d'); tc.clearRect(0,0,tw,th); tc.putImageData(out,0,0);
     spriteW=tw; spriteH=th;
+    try{ const r0=cv.getBoundingClientRect();
+      DBG.build={CW:CW,CH:CH,tw:tw,th:th,rectW:Math.round(r0.width),rectH:Math.round(r0.height),
+                 fs:L.fs, lines:L.lines.length, first:L.lines[0]||'',
+                 lineW:Math.round(mc.measureText(L.lines[0]||'').width)};
+      dbgShow(); }catch(e){}
     buildEmojiSprite(L,msg);
   }
   let scene='idle',cover=[],bugs=[],coverAlpha=0,phaseStart=0,revSpeed=0.18,revealLayout=null,revealMsg='',revealDone=false;
@@ -14045,6 +14071,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       }
 
       ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+      if(DBG.on) dbgShow();
       const frac=bugs.length?settledN/bugs.length:1;
       if(scene==='reveal' && !revealDone && frac>=0.985){ revealDone=true; if(eggPending){ showEggBadge(eggPending); } }
       if(scene==='reveal') coverAlpha=Math.max(0,1-frac*1.15);
