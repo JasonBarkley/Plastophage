@@ -13782,13 +13782,36 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const FONT=getComputedStyle(document.body).fontFamily;
   function layoutText(msg){
     const oc=document.createElement('canvas'); oc.width=Math.max(1,CW); oc.height=Math.max(1,CH); const o=oc.getContext('2d');
-    const words=(msg||'').trim().split(/\s+/); let last=null;
+    const words=(msg||'').trim().split(/\s+/);
+    const seg=(typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined,{granularity:'grapheme'}) : null;
+    const graphemes=(str)=> seg ? [...seg.segment(str)].map(g=>g.segment) : Array.from(str);
+    let last=null;
     for(let fs=Math.min(64,CH*0.42); fs>=9; fs-=1){
-      o.font='700 '+fs+'px '+FONT; const lh=fs*1.16, maxW=CW*0.9, lines=[]; let line='';
-      for(const w of words){ const test=line?line+' '+w:w;
-        if(o.measureText(test).width>maxW && line){ lines.push(line); line=w; } else line=test; }
-      if(line) lines.push(line); last={fs,lh,lines};
-      if(lines.length*lh<=CH*0.86) return last; }
+      o.font='700 '+fs+'px '+FONT;
+      const lh=fs*1.16, maxW=CW*0.9, lines=[]; let line='';
+      for(const w of words){
+        // A single word can be wider than the line (long words, or emoji that measure wide):
+        // split it by graphemes so emoji are never cut in half.
+        if(o.measureText(w).width>maxW){
+          if(line){ lines.push(line); line=''; }
+          let chunk='';
+          for(const g of graphemes(w)){
+            const test=chunk+g;
+            if(chunk && o.measureText(test).width>maxW){ lines.push(chunk); chunk=g; }
+            else chunk=test;
+          }
+          if(chunk) line=chunk;
+          continue;
+        }
+        const test=line?line+' '+w:w;
+        if(o.measureText(test).width>maxW && line){ lines.push(line); line=w; } else line=test;
+      }
+      if(line) lines.push(line);
+      last={fs,lh,lines};
+      // accept only if it fits BOTH vertically and horizontally
+      const widest=lines.reduce((mx,l)=>Math.max(mx,o.measureText(l).width),0);
+      if(lines.length*lh<=CH*0.86 && widest<=maxW) return last;
+    }
     return last || {fs:12,lh:14,lines:[msg||'']};
   }
   function pointsFromLayout(L){
@@ -13812,16 +13835,38 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const tw=Math.max(1,CW), th=Math.max(1,CH);
     emojiSprite.width=tw; emojiSprite.height=th;
     const ec=emojiSprite.getContext('2d'); ec.clearRect(0,0,tw,th);
-    ec.font='700 '+L.fs+'px '+FONT; ec.textAlign='left'; ec.textBaseline='middle';
+    // Draw the SAME lines, with the SAME centring pass as the base text, but paint only the
+    // emoji: every other character is replaced by a space of identical width. This guarantees
+    // the emoji land exactly where the browser put them in the base text (no manual x maths).
+    ec.font='700 '+L.fs+'px '+FONT; ec.textAlign='center'; ec.textBaseline='middle';
     const totalH=L.lines.length*L.lh, y0=th/2-totalH/2+L.lh/2;
     const seg=(typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined,{granularity:'grapheme'}) : null;
+    const graphemes=(str)=> seg ? [...seg.segment(str)].map(g=>g.segment) : Array.from(str);
     L.lines.forEach((ln,i)=>{
       const y=y0+i*L.lh;
-      const lineW=ec.measureText(ln).width; let x=tw/2-lineW/2;
-      const units = seg ? [...seg.segment(ln)].map(g=>g.segment) : Array.from(ln);
-      for(const ch of units){ const w=ec.measureText(ch).width;
-        if(hasEmoji(ch)){ ec.fillText(ch, x, y); emojiActive=true; }
-        x+=w; }
+      const units=graphemes(ln);
+      if(!units.some(hasEmoji)) return;
+      // Build a masked line: emoji kept, everything else made transparent.
+      // We paint the line twice: once fully transparent except emoji.
+      const x=tw/2;
+      // Paint each emoji at its true position by drawing the full line with a clip per emoji.
+      // Simpler and exact: draw the whole line, then erase the non-emoji parts is fragile.
+      // Instead: draw the line once per emoji, clipped to that emoji's advance box.
+      // Compute advances with the same context/font used for the real draw.
+      let acc=0; const adv=units.map(u=>{ const w=ec.measureText(u).width; const a=acc; acc+=w; return {u,a,w}; });
+      const lineW=ec.measureText(ln).width;
+      const left=x-lineW/2;
+      for(const g of adv){
+        if(!hasEmoji(g.u)) continue;
+        emojiActive=true;
+        ec.save();
+        ec.beginPath();
+        // clip a generous box around this glyph's advance so neighbours never bleed in
+        ec.rect(left+g.a-1, y-L.lh*0.75, g.w+2, L.lh*1.5);
+        ec.clip();
+        ec.fillText(ln, x, y);   // identical shaping/centring as the base text
+        ec.restore();
+      }
     });
   }
   const textSprite=document.createElement('canvas');
