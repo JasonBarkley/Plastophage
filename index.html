@@ -13685,6 +13685,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function fit(){ const r=cv.getBoundingClientRect(); CW=Math.max(280,Math.round(r.width)); CH=Math.max(160,Math.round(r.height));
     DPR=Math.min(window.devicePixelRatio||1,2); cv.width=CW*DPR; cv.height=CH*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
   let hardClearFrames=0;   // >0: frame() wipes the canvas fully (kills stale text during iOS resize settling)
+  function coverRemainingAt(qc, cx, cy, rad, W, H){
+    // average plastic-alpha over a small grid across the emoji box: 1 = fully covered, 0 = clear
+    let sum=0, n=0;
+    for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+      const x=Math.max(0,Math.min(W-1,(cx+dx*rad*0.4)|0)), y=Math.max(0,Math.min(H-1,(cy+dy*rad*0.4)|0));
+      try{ sum+=qc.getImageData(x,y,1,1).data[3]/255; n++; }catch(e){}
+    }
+    return n? sum/n : 0;
+  }
   function relayoutReveal(){
     if(scene!=='reveal' || !revealMsg){ return; }
     revealLayout = layoutText(revealMsg);
@@ -14101,9 +14110,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
             for(const sp of emojiSpots){
               let localReveal=ta;
               if(qrReady){
-                try{ const px=qctx.getImageData(Math.max(0,Math.min(CW-1,sp.x|0)), Math.max(0,Math.min(CH-1,sp.y|0)), 1, 1).data;
-                  localReveal = 1 - (px[3]/255);   // plastic alpha remaining -> 0 shown, 1 hidden
-                }catch(e){ localReveal=ta; }
+                const covered=coverRemainingAt(qctx, sp.x, sp.y, sp.r, CW, CH);   // 1 covered .. 0 clear
+                // only start showing once most plastic is gone: remap [0.45..0] -> [0..1]
+                localReveal = Math.max(0, Math.min(1, (0.45 - covered) / 0.45));
               }
               localReveal=Math.max(0,Math.min(1,localReveal));
               if(localReveal<=0.02) continue;
@@ -14249,9 +14258,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
             vx.drawImage(spr.sp,0,0); vx.shadowBlur=0; vx.globalAlpha=1; }
           if(spr.emActive){
             for(const sp of spr.spots){
-              let lr=ta;
-              try{ const px=cxv.getImageData(Math.max(0,Math.min(S-1,(sp.x-qx0)|0)), Math.max(0,Math.min(S-1,(sp.y-qy0)|0)),1,1).data;
-                lr=1-(px[3]/255); }catch(e){ lr=ta; }
+              const covered=coverRemainingAt(cxv, sp.x-qx0, sp.y-qy0, sp.r, S, S);
+              let lr=Math.max(0, Math.min(1, (0.45 - covered) / 0.45));
               lr=Math.max(0,Math.min(1,lr)); if(lr<=0.02) continue;
               vx.globalAlpha=lr; vx.save();
               vx.beginPath(); vx.arc(sp.x,sp.y,sp.r*1.35,0,6.283); vx.clip();
