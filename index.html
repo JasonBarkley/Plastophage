@@ -13838,8 +13838,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const emojiSprite=document.createElement('canvas'); let emojiActive=false;
   // Draw the message crisply but paint only the emoji glyphs (letters stay transparent here),
   // so we can overlay sharp, full-color emoji on top of the frayed teal text.
+  let emojiSpots=[];   // centres of each emoji, to gate their reveal on local erosion
   function buildEmojiSprite(L,msg){
-    emojiActive=false;
+    emojiActive=false; emojiSpots=[];
     if(!hasEmoji(msg)) return;
     const tw=Math.max(1,CW), th=Math.max(1,CH);
     emojiSprite.width=tw; emojiSprite.height=th;
@@ -13852,12 +13853,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const units=graphemes(ln);
       if(!units.some(hasEmoji)) return;
       const y=y0+i*L.lh;
-      // measure the whole line the same way the base sprite does, then walk graphemes from its left edge
       const lineW=ec.measureText(ln).width;
       let x=tw/2-lineW/2;
       for(const g of units){
         const w=ec.measureText(g).width;
-        if(hasEmoji(g)){ ec.fillText(g, x, y); emojiActive=true; }
+        if(hasEmoji(g)){ ec.fillText(g, x, y); emojiActive=true; emojiSpots.push({x:x+w/2, y:y, r:Math.max(w,L.lh)*0.5}); }
         x+=w;
       }
     });
@@ -13937,7 +13937,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     qrReady = payload ? renderQRCover(payload) : false; if(!qrReady) makeCover(480);
     coverAlpha=1; bugs=[]; phaseStart=performance.now(); revealDone=false;
     revealLayout = ok ? layoutText(msg) : null; revealMsg = ok ? msg : ''; if(ok) buildTextSprite(revealLayout,msg);
-    const targets = ok ? pointsFromLayout(revealLayout) : randomCloud();
+    let targets = ok ? pointsFromLayout(revealLayout) : randomCloud();
+    // add a cluster of targets over each emoji so bacteria sweep across and uncover it
+    if(ok && emojiSpots && emojiSpots.length){
+      for(const sp of emojiSpots){ const ring=Math.max(6,Math.round(sp.r/3));
+        for(let a=0;a<ring;a++){ const an=(a/ring)*6.283;
+          targets.push({x:sp.x+Math.cos(an)*sp.r*0.6, y:sp.y+Math.sin(an)*sp.r*0.6});
+          targets.push({x:sp.x+Math.cos(an)*sp.r*0.3, y:sp.y+Math.sin(an)*sp.r*0.3}); }
+        targets.push({x:sp.x, y:sp.y}); }
+    }
     const N=Math.min(targets.length,2200);
     for(let i=0;i<N;i++){ const t=targets[i%targets.length]; const side=Math.random(); let sx,sy;
       if(side<.5){ sx=Math.random()*CW; sy=Math.random()<.5?-10:CH+10; } else { sx=Math.random()<.5?-10:CW+10; sy=Math.random()*CH; }
@@ -14087,7 +14095,26 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
           if(spriteW>0 && spriteH>0){ ctx.drawImage(textSprite,0,0,spriteW,spriteH,0,0,CW,CH); }
           else { ctx.drawImage(textSprite,0,0,CW,CH); }
           ctx.shadowBlur=0;
-          if(emojiActive){ if(spriteW>0 && spriteH>0){ ctx.drawImage(emojiSprite,0,0,spriteW,spriteH,0,0,CW,CH); } else { ctx.drawImage(emojiSprite,0,0,CW,CH); } }
+          if(emojiActive){
+            // Reveal each emoji in step with how much the bacteria have eaten the plastic over it.
+            // If there is no plastic layer (text-only mode), fall back to the global text alpha.
+            for(const sp of emojiSpots){
+              let localReveal=ta;
+              if(qrReady){
+                try{ const px=qctx.getImageData(Math.max(0,Math.min(CW-1,sp.x|0)), Math.max(0,Math.min(CH-1,sp.y|0)), 1, 1).data;
+                  localReveal = 1 - (px[3]/255);   // plastic alpha remaining -> 0 shown, 1 hidden
+                }catch(e){ localReveal=ta; }
+              }
+              localReveal=Math.max(0,Math.min(1,localReveal));
+              if(localReveal<=0.02) continue;
+              ctx.globalAlpha=localReveal;
+              ctx.save();
+              ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.r*1.35, 0, 6.283); ctx.clip();
+              if(spriteW>0 && spriteH>0){ ctx.drawImage(emojiSprite,0,0,spriteW,spriteH,0,0,CW,CH); }
+              else { ctx.drawImage(emojiSprite,0,0,CW,CH); }
+              ctx.restore();
+            }
+          }
           ctx.globalAlpha=1; } }
       if(scene==='fail'){ const ta=Math.max(0,Math.min(1,(el-0.5)/0.6));
         if(ta>0){ ctx.globalCompositeOperation='source-over'; ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -14124,8 +14151,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(lines.length*lh<=boxH*0.9) return last; }
     return last || {fs:20,lh:24,lines:[msg||'']}; }
   function vSprite(L,W,H,cy){ const m=document.createElement('canvas'); m.width=W; m.height=H; const mc=m.getContext('2d');
-    mc.font='700 '+L.fs+'px '+FONT; mc.textAlign='center'; mc.textBaseline='middle'; mc.fillStyle='#fff';
-    const tot=L.lines.length*L.lh, y0=cy-tot/2+L.lh/2; L.lines.forEach((ln,i)=>mc.fillText(ln,W/2,y0+i*L.lh));
+    mc.font='700 '+L.fs+'px '+FONT; mc.textAlign='left'; mc.textBaseline='middle'; mc.fillStyle='#fff';
+    const tot=L.lines.length*L.lh, y0=cy-tot/2+L.lh/2;
+    const vseg=(typeof Intl!=='undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined,{granularity:'grapheme'}) : null;
+    const vgraph=(str)=> vseg ? [...vseg.segment(str)].map(g=>g.segment) : Array.from(str);
+    L.lines.forEach((ln,i)=>{ const yy=y0+i*L.lh; const lineW=mc.measureText(ln).width; let xx=W/2-lineW/2;
+      for(const g of vgraph(ln)){ const gw=mc.measureText(g).width; if(!hasEmoji(g)) mc.fillText(g,xx,yy); xx+=gw; } });
     let src; try{ src=mc.getImageData(0,0,W,H); }catch(e){ return {sp:m,pts:[]}; }
     const d=src.data, A=new Uint8Array(W*H); for(let i=0;i<W*H;i++) A[i]=d[i*4+3];
     const out=mc.createImageData(W,H), o=out.data, fray=0.5;
@@ -14138,7 +14169,21 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     for(let y=0;y<H;y+=step) for(let x=0;x<W;x+=step) if(A[y*W+x]>120) pts.push({x,y});
     for(let i=pts.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const p2=pts[i]; pts[i]=pts[j]; pts[j]=p2; }
     if(pts.length>1600) pts.length=1600;
-    return {sp:m,pts}; }
+    // colour-emoji layer for the video (drawn crisp on top, same as the live screen)
+    const em=document.createElement('canvas'); em.width=W; em.height=H; const emc=em.getContext('2d');
+    emc.font='700 '+L.fs+'px '+FONT; emc.textAlign='left'; emc.textBaseline='middle';
+    let emActive=false; const spots=[];
+    L.lines.forEach((ln,i)=>{ const units=vgraph(ln); if(!units.some(hasEmoji)) return;
+      const yy=y0+i*L.lh; const lineW=emc.measureText(ln).width; let xx=W/2-lineW/2;
+      for(const g of units){ const gw=emc.measureText(g).width;
+        if(hasEmoji(g)){ emc.fillText(g,xx,yy); emActive=true; spots.push({x:xx+gw/2,y:yy,r:Math.max(gw,L.lh)*0.5}); } xx+=gw; } });
+    // add sweep targets over each emoji so bugs uncover it (without forming its shape)
+    if(spots.length){ for(const sp of spots){ const ring=Math.max(6,Math.round(sp.r/3));
+      for(let a=0;a<ring;a++){ const an=(a/ring)*6.283;
+        pts.push({x:sp.x+Math.cos(an)*sp.r*0.6,y:sp.y+Math.sin(an)*sp.r*0.6});
+        pts.push({x:sp.x+Math.cos(an)*sp.r*0.3,y:sp.y+Math.sin(an)*sp.r*0.3}); }
+      pts.push({x:sp.x,y:sp.y}); } }
+    return {sp:m,pts,em:em,emActive:emActive,spots:spots}; }
   function vQRCover(pl,S){ const c=document.createElement('canvas'); c.width=S; c.height=S; const x=c.getContext('2d');
     try{ const q=qrcode(0,'H'); q.addData(pl); q.make(); const N=q.getModuleCount(), quiet=2;
       const cell=Math.max(1,Math.floor(S/(N+quiet*2))), dim=(N+quiet*2)*cell, off=Math.floor((S-dim)/2);
@@ -14202,6 +14247,18 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
           const ta=Math.max(0,Math.min(1,(lastFrac-0.35)/0.5));
           if(ta>0){ vx.globalAlpha=ta; vx.shadowColor='rgba(124,255,212,0.9)'; vx.shadowBlur=10;
             vx.drawImage(spr.sp,0,0); vx.shadowBlur=0; vx.globalAlpha=1; }
+          if(spr.emActive){
+            for(const sp of spr.spots){
+              let lr=ta;
+              try{ const px=cxv.getImageData(Math.max(0,Math.min(S-1,(sp.x-qx0)|0)), Math.max(0,Math.min(S-1,(sp.y-qy0)|0)),1,1).data;
+                lr=1-(px[3]/255); }catch(e){ lr=ta; }
+              lr=Math.max(0,Math.min(1,lr)); if(lr<=0.02) continue;
+              vx.globalAlpha=lr; vx.save();
+              vx.beginPath(); vx.arc(sp.x,sp.y,sp.r*1.35,0,6.283); vx.clip();
+              vx.drawImage(spr.em,0,0); vx.restore();
+            }
+            vx.globalAlpha=1;
+          }
           const ha=Math.min(1,tt/0.7);
           vx.textAlign='center'; vx.textBaseline='alphabetic';
           vx.globalAlpha=ha; vx.shadowColor='rgba(124,255,212,.75)'; vx.shadowBlur=14;
