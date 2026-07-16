@@ -13683,14 +13683,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const cv=$('cv'), ctx=cv.getContext('2d'); let CW=0,CH=0,DPR=1;
   function fit(){ const r=cv.getBoundingClientRect(); CW=Math.max(280,Math.round(r.width)); CH=Math.max(160,Math.round(r.height));
     DPR=Math.min(window.devicePixelRatio||1,2); cv.width=CW*DPR; cv.height=CH*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
-  let hardClear=false;   // when true, frame() wipes the canvas once (kills stale text)
+  let hardClearFrames=0;   // >0: frame() wipes the canvas fully (kills stale text during iOS resize settling)
   function relayoutReveal(){
     // Recompute text layout, sprite and bug targets for the CURRENT canvas size,
     // preserving how far the erosion has progressed.
     if(scene!=='reveal' || !revealMsg) return;
     revealLayout = layoutText(revealMsg);
     buildTextSprite(revealLayout, revealMsg);
-    hardClear=true;   // the previous sprite is burned into the faded canvas: clear it once
+    hardClearFrames=Math.max(hardClearFrames,4);   // wipe a few frames so nothing stale lingers
     const targets = pointsFromLayout(revealLayout);
     if(!targets.length) return;
     for(let i=0;i<bugs.length;i++){ const t=targets[i%targets.length];
@@ -13699,7 +13699,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   let _lastW=0,_lastH=0;
   new ResizeObserver(()=>{ const pw=CW, ph=CH; fit();
-    if(CW!==pw || CH!==ph){ relayoutReveal(); }
+    if(CW!==pw || CH!==ph){ relayoutReveal(); hardClearFrames=Math.max(hardClearFrames,3); }
   }).observe(cv);
   const glow=document.createElement('canvas'); glow.width=glow.height=64;
   { const g=glow.getContext('2d'),grd=g.createRadialGradient(32,32,0,32,32,32);
@@ -13917,11 +13917,17 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function enterFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.add('full'); document.body.classList.add('revealing');
     void d.offsetWidth; fit();
-    // iOS settles the fullscreen viewport over a frame or two: re-measure and rebuild
-    // the text sprite so it is never laid out for a stale canvas size.
+    hardClearFrames=Math.max(hardClearFrames,4);
+    // iOS shrinks the viewport (toolbars sliding away) over up to ~1s AFTER we go fullscreen,
+    // firing several resizes. Re-measure across that whole window; whenever the size changes,
+    // rebuild the text sprite AND wipe a few frames so no stale copy can linger.
+    let settleUntil=performance.now()+1100;
     const recheck=()=>{ const pw=CW, ph=CH; fit();
-      if((CW!==pw || CH!==ph) && scene==='reveal') relayoutReveal(); };
-    requestAnimationFrame(()=>{ recheck(); requestAnimationFrame(recheck); });
+      if((CW!==pw || CH!==ph) && scene==='reveal'){ relayoutReveal(); }
+      if(performance.now()<settleUntil && document.querySelector('.dish').classList.contains('full')){
+        requestAnimationFrame(recheck);
+      } };
+    requestAnimationFrame(recheck);
   }
   function exitFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.remove('full'); document.body.classList.remove('revealing');
@@ -13945,7 +13951,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     scene=ok?'reveal':'fail'; $('badge').textContent=ok?t('badge_ok'):t('badge_bad'); }
   function frame(){
     ctx.globalCompositeOperation='source-over';
-    if(hardClear){ ctx.fillStyle='#02070a'; ctx.fillRect(0,0,CW,CH); hardClear=false; }
+    if(hardClearFrames>0){ ctx.fillStyle='#02070a'; ctx.fillRect(0,0,CW,CH); hardClearFrames--; }
     else { ctx.fillStyle='rgba(2,7,10,.28)'; ctx.fillRect(0,0,CW,CH); }
     if(coverAlpha>0.01){
       if(qrReady){ ctx.globalAlpha=coverAlpha; ctx.drawImage(qrCover,0,0,CW,CH); ctx.globalAlpha=1; }
