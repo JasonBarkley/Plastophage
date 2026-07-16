@@ -214,6 +214,12 @@ details summary{ font-size:14px !important; padding:6px 0; }
 #gameSetup{ display:none; margin-top:10px; }
 #gameSetup.show{ display:block; }
 
+
+/* TEMP diag */
+#dbg{ position:fixed; left:6px; top:6px; z-index:99; display:none; max-width:94vw; max-height:60vh; overflow:auto;
+  background:rgba(0,0,0,.85); color:#7cffd4; font:10px/1.4 ui-monospace,monospace;
+  padding:8px 10px; border-radius:8px; border:1px solid rgba(124,255,212,.4); white-space:pre-wrap; }
+#dbg.show{ display:block; }
 </style>
 
   <meta name="theme-color" content="#02070a">
@@ -248,6 +254,7 @@ details summary{ font-size:14px !important; padding:6px 0; }
   </div>
 
   <div class="dish"><canvas id="cv"></canvas><div class="badge" id="badge">coltura in attesa</div><div id="eggBadge"><div class="et" id="eggTitle"></div><div class="eq" id="eggQuote"></div></div></div>
+  <div id="dbg"></div>
   <div id="dishClose">✕</div>
   <div id="dishHint" data-i18n="fm_hint">tocca lo sfondo per chiudere</div>
 
@@ -13683,11 +13690,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const cv=$('cv'), ctx=cv.getContext('2d'); let CW=0,CH=0,DPR=1;
   function fit(){ const r=cv.getBoundingClientRect(); CW=Math.max(280,Math.round(r.width)); CH=Math.max(160,Math.round(r.height));
     DPR=Math.min(window.devicePixelRatio||1,2); cv.width=CW*DPR; cv.height=CH*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  const DIAG={on:/[#&?]debug\b/.test(location.href), log:[], t0:0};
+  function dbg(msg){ if(!DIAG.on) return; const e=$('dbg'); if(!e) return;
+    if(!DIAG.t0) DIAG.t0=performance.now();
+    const ms=Math.round(performance.now()-DIAG.t0);
+    DIAG.log.push('+'+ms+'ms '+msg); if(DIAG.log.length>40) DIAG.log.shift();
+    e.classList.add('show'); e.textContent=DIAG.log.join('\n'); }
   let hardClearFrames=0;   // >0: frame() wipes the canvas fully (kills stale text during iOS resize settling)
   function relayoutReveal(){
-    // Recompute text layout, sprite and bug targets for the CURRENT canvas size,
-    // preserving how far the erosion has progressed.
-    if(scene!=='reveal' || !revealMsg) return;
+    if(scene!=='reveal' || !revealMsg){ dbg('relayoutReveal skipped (scene='+scene+')'); return; }
+    dbg('>> relayoutReveal REBUILDS at CW='+CW+' CH='+CH+' (settled bugs get moved)');
     revealLayout = layoutText(revealMsg);
     buildTextSprite(revealLayout, revealMsg);
     hardClearFrames=Math.max(hardClearFrames,4);   // wipe a few frames so nothing stale lingers
@@ -13699,7 +13711,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   let _lastW=0,_lastH=0;
   new ResizeObserver(()=>{ const pw=CW, ph=CH; fit();
-    if(CW!==pw || CH!==ph){ relayoutReveal(); hardClearFrames=Math.max(hardClearFrames,3); }
+    if(CW!==pw || CH!==ph){ dbg('!! ResizeObserver AFTER build: '+pw+'x'+ph+' -> '+CW+'x'+CH+' scene='+scene); relayoutReveal(); hardClearFrames=Math.max(hardClearFrames,3); }
   }).observe(cv);
   const glow=document.createElement('canvas'); glow.width=glow.height=64;
   { const g=glow.getContext('2d'),grd=g.createRadialGradient(32,32,0,32,32,32);
@@ -13918,16 +13930,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     d.classList.add('full'); document.body.classList.add('revealing');
     void d.offsetWidth; fit();
     hardClearFrames=Math.max(hardClearFrames,4);
-    // iOS shrinks the viewport (toolbars sliding away) over up to ~1s AFTER we go fullscreen,
-    // firing several resizes. Re-measure across that whole window; whenever the size changes,
-    // rebuild the text sprite AND wipe a few frames so no stale copy can linger.
-    let settleUntil=performance.now()+1100;
-    const recheck=()=>{ const pw=CW, ph=CH; fit();
-      if((CW!==pw || CH!==ph) && scene==='reveal'){ relayoutReveal(); }
-      if(performance.now()<settleUntil && document.querySelector('.dish').classList.contains('full')){
-        requestAnimationFrame(recheck);
-      } };
-    requestAnimationFrame(recheck);
   }
   function exitFull(){ const d=document.querySelector('.dish'); if(!d) return;
     d.classList.remove('full'); document.body.classList.remove('revealing');
@@ -13935,20 +13937,48 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   $('clueBtn').onclick=nextClue;
   $('dishClose').addEventListener('click',(e)=>{ e.stopPropagation(); exitFull(); });
   $('cv').addEventListener('click',()=>{ const d=document.querySelector('.dish'); if(d && d.classList.contains('full')) exitFull(); });
-  function reveal(ok,msg,strain){ enterFull(); fit(); qrReady = payload ? renderQRCover(payload) : false; if(!qrReady) makeCover(480); coverAlpha=1; bugs=[]; phaseStart=performance.now(); revealDone=false;
-    $('eggBadge').classList.remove('show'); eggGlow=null; eggPending=null;
-    eggFX=null;
-    if(ok && strain){ const egg=EGGS[normKey(strain)]; if(egg){ eggGlow=egg.glow||null; if(egg.speed) revSpeed=Math.max(revSpeed,egg.speed); eggPending=egg.k; eggFX=egg.fx||null; eggT0=performance.now(); } }
+  function buildReveal(ok,msg){
+    // Build the whole erosion ONCE, for the CURRENT (settled) canvas size.
+    fit();
+    qrReady = payload ? renderQRCover(payload) : false; if(!qrReady) makeCover(480);
+    coverAlpha=1; bugs=[]; phaseStart=performance.now(); revealDone=false;
     revealLayout = ok ? layoutText(msg) : null; revealMsg = ok ? msg : ''; if(ok) buildTextSprite(revealLayout,msg);
     const targets = ok ? pointsFromLayout(revealLayout) : randomCloud();
     const N=Math.min(targets.length,2200);
     for(let i=0;i<N;i++){ const t=targets[i%targets.length]; const side=Math.random(); let sx,sy;
       if(side<.5){ sx=Math.random()*CW; sy=Math.random()<.5?-10:CH+10; } else { sx=Math.random()<.5?-10:CW+10; sy=Math.random()*CH; }
       bugs.push({x:sx,y:sy,tx:t.x,ty:t.y,settled:false,e:Math.random()}); }
-    // roaming bacteria: scale with the dish size; easter eggs get a bigger, faster swarm
     { const area=Math.max(1,CW*CH), base=Math.round(Math.min(90, Math.max(26, area/9000)));
       spawnRoamers(ok ? Math.round(base*(eggPending?1.9:1)) : Math.round(base*0.5), !!eggPending); }
-    scene=ok?'reveal':'fail'; $('badge').textContent=ok?t('badge_ok'):t('badge_bad'); }
+    hardClearFrames=Math.max(hardClearFrames,3);
+    dbg('buildReveal DONE: CW='+CW+' CH='+CH+' sprite='+spriteW+'x'+spriteH+' bugs='+bugs.length);
+    scene=ok?'reveal':'fail'; $('badge').textContent=ok?t('badge_ok'):t('badge_bad');
+  }
+  function reveal(ok,msg,strain){
+    DIAG.t0=0; dbg('reveal() ok='+ok+' msg='+JSON.stringify((msg||'').slice(0,12)));
+    enterFull();
+    dbg('after enterFull: CW='+CW+' CH='+CH+' rect='+Math.round(cv.getBoundingClientRect().width)+'x'+Math.round(cv.getBoundingClientRect().height));
+    $('eggBadge').classList.remove('show'); eggGlow=null; eggPending=null; eggFX=null;
+    if(ok && strain){ const egg=EGGS[normKey(strain)]; if(egg){ eggGlow=egg.glow||null; if(egg.speed) revSpeed=Math.max(revSpeed,egg.speed); eggPending=egg.k; eggFX=egg.fx||null; eggT0=performance.now(); } }
+    // Show a calm holding state while the fullscreen canvas settles, then build ONCE.
+    scene='idle'; revealMsg = ok ? msg : ''; revealLayout=null; bugs=[]; roamers=[];
+    fit();
+    // render the plastic cover right away so the user sees the QR (not a blank) while it settles
+    qrReady = payload ? renderQRCover(payload) : false; if(!qrReady) makeCover(480); coverAlpha=1;
+    // Wait until the canvas size stops changing (iOS toolbars settle over ~1s), THEN build.
+    let lastW=CW, lastH=CH, stable=0;
+    const t0=performance.now();
+    const waitStable=()=>{
+      const _pw=CW,_ph=CH; fit();
+      if(CW!==_pw||CH!==_ph) dbg('resize during wait: '+_pw+'x'+_ph+' -> '+CW+'x'+CH);
+      if(CW===lastW && CH===lastH){ stable++; } else { stable=0; lastW=CW; lastH=CH; }
+      const elapsed=performance.now()-t0;
+      // build when the size has held for ~3 frames, or after a 1.2s safety cap
+      if(stable>=3 || elapsed>1200){ dbg('STABLE after '+Math.round(elapsed)+'ms -> buildReveal at CW='+CW+' CH='+CH); buildReveal(ok,msg); return; }
+      requestAnimationFrame(waitStable);
+    };
+    requestAnimationFrame(waitStable);
+  }
   function frame(){
     ctx.globalCompositeOperation='source-over';
     if(hardClearFrames>0){ ctx.fillStyle='#02070a'; ctx.fillRect(0,0,CW,CH); hardClearFrames--; }
