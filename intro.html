@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PLASTOPHAGE · L'esperimento</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0;background:#02070a;color:#d7f2ea;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top)) 18px max(30px,env(safe-area-inset-bottom))}
+.card{width:min(100%,560px);padding:28px 22px;border:1px solid rgba(124,255,212,.22);border-radius:22px;background:linear-gradient(180deg,rgba(8,24,26,.94),rgba(3,12,15,.97));box-shadow:0 22px 70px rgba(0,0,0,.5)}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7cffd4;margin-bottom:14px}
+h1{margin:0 0 10px;font-size:clamp(2.5rem,11vw,4.3rem);line-height:.9;letter-spacing:.02em;color:#effff9}
+.sub{font-size:16px;line-height:1.6;color:#9cc9bd;margin:0 0 24px}
+.steps{display:grid;gap:12px;margin:20px 0 26px}.step{display:flex;gap:12px;align-items:flex-start}.n{flex:none;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#7cffd4;color:#02120d;font-weight:800;font-size:13px;box-shadow:0 0 16px rgba(124,255,212,.35)}.tx{font-size:15px;line-height:1.55;color:#c9e9df;padding-top:2px}.tx b{color:#eafff8}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;margin-top:11px;padding:14px 16px;border-radius:13px;border:1px solid rgba(124,255,212,.32);text-decoration:none;font-weight:800;font-size:17px;letter-spacing:.03em;cursor:pointer;background:rgba(124,255,212,.20);color:#cffff0}
+.btn.primary{background:#7cffd4;color:#02120d;border-color:#7cffd4;box-shadow:0 0 24px rgba(124,255,212,.16)}
+.btn.ghost{background:transparent;color:#91bdb1}.btn.site{margin-top:22px;border-color:rgba(124,255,212,.18);color:#7cffd4}
+.langs{display:flex;justify-content:flex-end;gap:7px;margin-bottom:8px}.lang{padding:7px 10px;border-radius:999px;border:1px solid rgba(124,255,212,.2);font-size:11px;font-weight:800;letter-spacing:.1em;cursor:pointer;color:#8fe6cc}.lang.on{background:rgba(124,255,212,.16);color:#eafff8}
+.note{text-align:center;color:#5f857e;font-size:11px;line-height:1.55;margin-top:16px}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="langs"><span class="lang" data-lang="it">IT</span><span class="lang" data-lang="en">EN</span></div>
+  <div class="kicker" id="kicker">L'ESPERIMENTO</div>
+  <h1>PLASTOPHAGE</h1>
+  <p class="sub" id="sub">Prima di entrare, puoi provare una demo guidata e vedere in pochi secondi come funziona l'esperimento.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="tx" id="s1">Un messaggio viene <b>sigillato nella plastica</b>.</div></div>
+    <div class="step"><div class="n">2</div><div class="tx" id="s2">Solo il <b>ceppo batterico corretto</b> può liberarlo.</div></div>
+    <div class="step"><div class="n">3</div><div class="tx" id="s3">Nella demo trovi tutto già pronto per provarlo.</div></div>
+  </div>
+  <button class="btn primary" id="demo">PROVA SUBITO UNA DEMO</button>
+  <button class="btn ghost" id="start">ENTRA NELL'ESPERIMENTO</button>
+  <a class="btn site" id="site" href="https://plastophage.com/">← TORNA A PLASTOPHAGE.COM</a>
+  <div class="note" id="note">La demo non modifica nulla: puoi tornare all'esperimento completo in qualsiasi momento.</div>
+</main>
+<script>
+(function(){
+  const q=new URLSearchParams(location.search); let lang=(q.get('lang')||'it').toLowerCase()==='en'?'en':'it';
+  const T={
+    it:{k:"L'ESPERIMENTO",sub:"Prima di entrare, puoi provare una demo guidata e vedere in pochi secondi come funziona l'esperimento.",s1:"Un messaggio viene <b>sigillato nella plastica</b>.",s2:"Solo il <b>ceppo batterico corretto</b> può liberarlo.",s3:"Nella demo trovi tutto già pronto per provarlo.",demo:"PROVA SUBITO UNA DEMO",start:"ENTRA NELL'ESPERIMENTO",site:"← TORNA A PLASTOPHAGE.COM",note:"La demo non modifica nulla: puoi tornare all'esperimento completo in qualsiasi momento.",siteUrl:"https://plastophage.com/"},
+    en:{k:"THE EXPERIMENT",sub:"Before you enter, you can try a guided demo and see in a few seconds how the experiment works.",s1:"A message is <b>sealed inside plastic</b>.",s2:"Only the <b>correct bacterial strain</b> can release it.",s3:"The demo has everything ready for you to try.",demo:"TRY THE DEMO",start:"ENTER THE EXPERIMENT",site:"← BACK TO PLASTOPHAGE.COM",note:"The demo changes nothing: you can return to the full experiment at any time.",siteUrl:"https://plastophage.com/en/"}
+  };
+  function apply(){const t=T[lang];document.documentElement.lang=lang;document.getElementById('kicker').textContent=t.k;document.getElementById('sub').textContent=t.sub;document.getElementById('s1').innerHTML=t.s1;document.getElementById('s2').innerHTML=t.s2;document.getElementById('s3').textContent=t.s3;document.getElementById('demo').textContent=t.demo;document.getElementById('start').textContent=t.start;document.getElementById('site').textContent=t.site;document.getElementById('site').href=t.siteUrl;document.getElementById('note').textContent=t.note;document.querySelectorAll('.lang').forEach(x=>x.classList.toggle('on',x.dataset.lang===lang));}
+  document.querySelectorAll('.lang').forEach(x=>x.onclick=()=>{lang=x.dataset.lang;history.replaceState(null,'','?lang='+lang);apply();});
+  document.getElementById('demo').onclick=()=>{try{localStorage.removeItem('plst_onb')}catch(e){} location.href='/?lang='+lang;};
+  document.getElementById('start').onclick=()=>{try{localStorage.setItem('plst_onb','1')}catch(e){} location.href='/?lang='+lang;};
+  apply();
+})();
+</script>
+</body>
+</html>
