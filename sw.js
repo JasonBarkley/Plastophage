@@ -1,5 +1,5 @@
-const CACHE = 'plastophage-v52';
-const ASSETS = ['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','icon-512-maskable.png','site-link.js'];
+const CACHE = 'plastophage-v53';
+const ASSETS = ['./','index.html','intro.html','manifest.webmanifest','icon-192.png','icon-512.png','icon-512-maskable.png','site-link.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -30,7 +30,7 @@ self.addEventListener('fetch', e => {
         .catch(() => caches.open(CACHE).then(c => c.match('index.html')).then(r => r.text()))
         .then(html => {
           if (!html.includes('site-link.js')) {
-            html = html.replace('</body>', '<script src="site-link.js?v=52"></script></body>');
+            html = html.replace('</body>', '<script src="site-link.js?v=53"></script></body>');
           }
           return new Response(html, {headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache'}});
         })
